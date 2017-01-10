@@ -49,11 +49,21 @@ void doTimeStep() {
     timings[1] += MPI_Wtime();
     #endif
 
-    // update inner board
+    // Receive rows from adjacent process
     #ifdef DEBUG
     timings[2] -= MPI_Wtime();
     #endif
-    for (i = 2; i < numrows; i++) {
+    MPI_Recv(old[numrows + 1], nj, MPI_INT, (rank + 1) % numprocs, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(old[0], nj, MPI_INT, (numprocs + rank - 1) % numprocs, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    #ifdef DEBUG
+    timings[2] += MPI_Wtime();
+    #endif
+
+    // update board
+    #ifdef DEBUG
+    timings[3] -= MPI_Wtime();
+    #endif
+    for (i = 1; i <= numrows; i++) {
         for (j = 1; j <= bwidth; j++) {
             im = i - 1;
             ip = i + 1;
@@ -80,81 +90,12 @@ void doTimeStep() {
         }
     }
     #ifdef DEBUG
-    timings[2] += MPI_Wtime();
-    #endif
-
-    // Receive rows from adjacent process
-    #ifdef DEBUG
-    timings[3] -= MPI_Wtime();
-    #endif
-    MPI_Recv(old[numrows + 1], nj, MPI_INT, (rank + 1) % numprocs, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Recv(old[0], nj, MPI_INT, (numprocs + rank - 1) % numprocs, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    #ifdef DEBUG
     timings[3] += MPI_Wtime();
     #endif
 
-
-
-    // update first and last row
-    #ifdef DEBUG
-    timings[4] -= MPI_Wtime();
-    #endif
-    for (j = 1; j <= bwidth; j++) {
-        im = 1 - 1;
-        ip = 1 + 1;
-        jm = j - 1;
-        jp = j + 1;
-
-        nsum = old[im][jp] + old[1][jp] + old[ip][jp]
-            + old[im][j] + old[ip][j]
-            + old[im][jm] + old[1][jm] + old[ip][jm];
-
-        switch (nsum) {
-        // a new organism is born
-        case 3:
-            new[1][j] = 1;
-            break;
-        // nothing happens
-        case 2:
-            new[1][j] = old[1][j];
-            break;
-        // the organism, if any, dies
-        default:
-            new[1][j] = 0;
-        }
-    }
-    for (j = 1; j <= bwidth; j++) {
-        im = numrows - 1;
-        ip = numrows + 1;
-        jm = j - 1;
-        jp = j + 1;
-
-        nsum = old[im][jp] + old[numrows][jp] + old[ip][jp]
-            + old[im][j] + old[ip][j]
-            + old[im][jm] + old[numrows][jm] + old[ip][jm];
-
-        switch (nsum) {
-        // a new organism is born
-        case 3:
-            new[numrows][j] = 1;
-            break;
-        // nothing happens
-        case 2:
-            new[numrows][j] = old[numrows][j];
-            break;
-        // the organism, if any, dies
-        default:
-            new[numrows][j] = 0;
-        }
-    }
-    #ifdef DEBUG
-    timings[4] += MPI_Wtime();
-    #endif
-
-
     // copy new state into old state
     #ifdef DEBUG
-    timings[5] -= MPI_Wtime();
+    timings[4] -= MPI_Wtime();
     #endif
     for (i = 1; i <= numrows; i++) {
         for (j = 1; j <= bwidth; j++) {
@@ -162,7 +103,7 @@ void doTimeStep() {
         }
     }
     #ifdef DEBUG
-    timings[5] += MPI_Wtime();
+    timings[4] += MPI_Wtime();
     #endif
 }
 
