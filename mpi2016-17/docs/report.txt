@@ -1,8 +1,8 @@
 Row partitioning not good if bheight < numprocs. Same for column partitioning when bwidth < numprocs.
-block partitioning not needed
 no tags.. not needed..
 receive inverted in case only one process
 take max time
+problem size = matrix size
 
 
 
@@ -10,6 +10,7 @@ take max time
 TODO:
 • don't send to proc 0
 • memory optimized
+• barrier before starting
 • overlapping communication/computation
 • check numproc < rows
     if (bheight < numprocs) {

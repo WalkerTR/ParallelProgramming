@@ -1,0 +1,91 @@
+\documentclass{article}
+
+\usepackage{hyperref}
+\usepackage{amsmath}
+
+
+
+\hypersetup{
+    colorlinks = true,
+    linkcolor = blue,
+    anchorcolor = blue
+}
+
+
+
+
+
+\title{Parallelization of the Game of Life in OpenMPI}
+
+\author{Davide Dal Bianco \\ 2598719}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This report aims to summarize the techniques and algorithms used to parallelize the game of life, starting from a provided sequential version. Starting from a basic parallel version, the program is then improved to get the maximum performance possible. The provided sequential program is not the optimal one, but the parallel one reflect its main structure in order to provide a fair speedup measure.
+\end{abstract}
+
+\section{Introduction}
+The Game of Life has been invented by the mathematician Conway in 1970 where, provided an initial state, the successive states can be calculated without any external interaction. Each state consist of a matrix where each cell represents an organism and can be either 0 (dead cell) or 1 (live cell). The successive state can be computed by updating each cell according to the following conditions:
+\begin{itemize}
+    \item If an organism has less then two adjacent live cells, it will die.
+    \item If an organism has two or three adjacent live cells, it will survive.
+    \item If an organism has more then three adjacent live cells, it will die.
+    \item If a dead cell has exactly three adjacent live cells, it will became live.
+\end{itemize}
+
+
+\section{Parallel algorithm} \label{sec:parallelalgorithm}
+The sequential algorithm compute the new state by updating each cell according to the previous rule. It follows that, for computing a single cell, only the adjacent ones are needed. For this reason, the entire matrix can be distributed among the processes according to a precise partition scheme. The rows partitioning should be the most suitable for this application, which consisting in assigning groups of contiguous rows to different processes. This choice is better explained in the paragraph \nameref{sec:blockpartitioning}. \\
+Assuming a matrix $N \times M$ and $P$ processes each process has $\mathcal{O}(N / P)$ rows to compute, thus $\mathcal{O}((M \times N) / P)$ cells. To compute a block, a process need the rows that precede and succeed its block, which are owned by another process. For this reason each step introduce a communication of $\mathcal{O}(M)$. The computation comunication ratio is therefore $\mathcal{O}((M \times N) / (P \times M))$, hence the algorithm can perform well only when $P << N$. When the problem size is much greater then the number of rows, the ratio is $\mathcal{O}(N)$ and algorithm should have a nearly linear speedup.
+
+
+\subsection{About blocks partitioning} \label{sec:blockpartitioning}
+The parallel algorithms uses a row partitioning to split the matrix among the processes. It differs from blocks partitioning because the blocks width is fixed to the width of the matrix. It can be seen that, if the number of processes is prime, the blocks partitioning coincide with rows partitioning (or the equivalent columns partitioning). More complex solutions can be used, for example merging adjacent blocks, but this mights leads to load imbalance problems. \\
+Suppose the blocks form a $n \times m$ matrix and $P = n \times m$. In both partitioning schemes the computation is the same and is the size of the entire matrix divided by the number of processes. The amount of communication, however, might be slightly different. For rows partitioning we already argued that communication is $\mathcal{O}(M)$ and, to be precise, it is exactly $2M$ for each iteration. On the other hand, in case of blocks partitioning, the amount of communication needed is $2N/n + 2M/m + 4$, that is, it highly depends on the choice of $P$. To give an example, if $P = 13$ than $m = 1$ or $n = 1$ and the communication required by rows partitioning is fewer. If $P = 16$, we can choose $m = 4$ and $n = 4$ and the communication required by blocks partitioning is fewer. Finally, if we have $P = 19$ we are in the first case again and the communication required by rows partitioning is fewer. \\
+Finally, using a blocks partition scheme each process must communicate with 8 different processes, whilst the rows partitioning scheme need to communicate with only 2 other processes. \\
+For the reasons above, the rows partitioning is the most suitable for this application.
+
+
+\subsection{Rows assignment} \label{sec:rowsassignment}
+The rows partitioning should assign the same number of rows to each process. However, this is possible only when $N$ is a multiple of $P$. When such condition is not verified, we should try to obtain the minimum load imbalance possible, that is, the number of rows per process should be $\lfloor N/P \rfloor$ or $\lceil N/P \rceil$. Given $S = (N~mod~P) \times \lceil N/P \rceil$, the following function $f: Nat \to Nat$ assign each row to its process:
+\[
+f(x)=
+\begin{cases}
+x / \lceil N/P \rceil & if~x < S \\
+(x - S) / \lfloor N/P \rfloor + r & if~x \geq S \\
+\end{cases}
+\]
+This function assign $\lceil N/P \rceil$ rows to the first $N~mod~P$ processes and $\lfloor N/P \rfloor$ to the remaining ones. $S$ represents the switch point between the two subfunctions and correspond to the number of rows assigned to the first $N~mod~P$ processes. In other words, the function $f$ is a broken line where the slope in the first part is less then the second part. When $N~mod~P$ is zero, then $S$ is null and the function is a straight line that assign the same number of rows to each process.
+
+\section{Implementation}
+The parallel program has been implemented starting from the sequential one and they share most of the code. The process with rank 0 is the master node and it also create the matrix and collect the final result. The sequential program has been edited in this way:
+\begin{itemize}
+    \item Only process with rank 0 create the matrix and, according to the function defined in the paragraph \nameref{sec:rowsassignment}, send each row to the process that owns it.
+    \item Each process receive the rows it owns.
+    \item For each iteration, each process exchange the boundary rows with the adjacent processes and then perform the computation.
+    \item After the iterations, each process compute the number of local live cells and then the global sum is obtained by means of \texttt{MPI\_Reduce} on the local results.
+    \item Only process with rank 0 prints the global result.
+\end{itemize}
+After creating the matrix, process 0 use asynchronous non-blocking sends to spread data among processes. The matrix does not mute, hence it is not necessary to buffer the messages. However, before deleting the matrix, it must be ensured that all messages has been received by \texttt{MPI\_Wait}. \\
+Due to different startup time and different amount of work (for process 0), some processes might start the iterations before others ones. In particular, some processes could be waiting for the boundary rows while the sending processes might still be in the startup phase. This is an unwanted behaviour and could be avoided using a \texttt{MPI\_Barrier} right before the core of the program. This synchronization point allows to start executing the iterations at the same time and avoid distortions in performance measurement. \\
+During each iteration processes exchange the boundary rows. A synchronous send is highly unwanted for two reasons: unnecessary synchronization points kill performance and, for this particular communication pattern, it is easy to reach a deadlock (problem similar to dining philosophers). On the other hand, using non-blocking sends it is not possible to update the matrix until the message has been received. It follows that a process must wait until a message is delivered and this kills the performance again. Asynchonous blocking communication is the best trade off: a small overhead is introduced for copying the message, but the state can be updated even if the messages has not been received. In order to use \texttt{MPI\_Bsend}, MPI require the user to manually attach the buffer. The space needed to send a message with \texttt{MPI\_Bsend} can be obtained using \texttt{MPI\_Pack\_size} and summing the constant \texttt{MPI\_BSEND\_OVERHEAD}, hence multiplying by 4 the minimum size of the buffer can be calculated (since we use asynchronous communication a process can start the next iteration while the other one has not yet received the data in the current iteration). Note that the order of the two receive is inverted with respect to the two send to work correctly in the case there is only one process. \\
+MPI communication tags are not used in the application because the communication scheme is quite easy.
+
+
+\section{Performance measurement}
+The parallel program should have a nearly linear speedup, as we already said in the section \nameref{sec:parallelalgorithm}. To measure the performance gain, the running time is measured by \texttt{MPI\_Wtime}, which returns the elapsed time on the calling processor. Once measured the local running times, we can take the maximum of them as the global running time. Choosing the maximum instead of the average provide a stricter speedup value and penalize load imbalances. However, when different executions leads to different global running times, the minimum one is preferred. In fact, the execution time of a program running in an interactive system (and even more with many interactive systems interconnected) is always delayed by a random value. Choosing the minimum execution time allows to partially get rid of the random delay. \\
+After the first performance measurement a superlinear speedup has been detected. This was not suppose to happen, therefore after further investigation the reason has been found in the copy of the boundary cells. The parallel program first copies the right-left borders and then sends the top-bottom rows (included ghost cells). The sequential program, however, copies the four corner cells separately and this introduce a noticeable overhead. Computer architectures are designed to provide the maximum performance when reading memory sequentially. Accessing the memory randomly, like accessing the four corners, has a big impact on performance. For this reason, in order to respect the same structure of the parallel program, \emph{the sequential program has been modified and the four corners are now copied together with top-bottom boundaries}.
+
+
+
+
+\section{Improvements}
+
+
+
+
+
+\end{document}

@@ -18,12 +18,6 @@ double rtime;
 
 // update board for step n
 void doTimeStep(){
-	/* corner boundary conditions */
-	old[0][0] = old[bwidth][bheight];
-	old[0][bheight + 1] = old[bwidth][1];
-	old[bwidth + 1][bheight + 1] = old[1][1];
-	old[bwidth + 1][0] = old[1][bheight];
-
 	/* left-right boundary conditions */
 	for (i = 1; i <= bwidth; i++){
 		old[i][0] = old[i][bheight];
@@ -31,7 +25,7 @@ void doTimeStep(){
 	}
 
 	/* top-bottom boundary conditions */
-	for (j = 1; j <= bheight; j++){
+	for (j = 0; j < nj; j++){
 		old[0][j] = old[bwidth][j];
 		old[bwidth + 1][j] = old[1][j];
 	}

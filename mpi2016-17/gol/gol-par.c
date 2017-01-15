@@ -49,11 +49,21 @@ void doTimeStep() {
     timings[1] += MPI_Wtime();
     #endif
 
-    // update inner board
+    // Receive rows from adjacent process
     #ifdef DEBUG
     timings[2] -= MPI_Wtime();
     #endif
-    for (i = 2; i < numrows; i++) {
+    MPI_Recv(old[numrows + 1], nj, MPI_INT, (rank + 1) % numprocs, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(old[0], nj, MPI_INT, (numprocs + rank - 1) % numprocs, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    #ifdef DEBUG
+    timings[2] += MPI_Wtime();
+    #endif
+
+    // update board
+    #ifdef DEBUG
+    timings[3] -= MPI_Wtime();
+    #endif
+    for (i = 1; i <= numrows; i++) {
         for (j = 1; j <= bwidth; j++) {
             im = i - 1;
             ip = i + 1;
@@ -80,81 +90,12 @@ void doTimeStep() {
         }
     }
     #ifdef DEBUG
-    timings[2] += MPI_Wtime();
-    #endif
-
-    // Receive rows from adjacent process
-    #ifdef DEBUG
-    timings[3] -= MPI_Wtime();
-    #endif
-    MPI_Recv(old[numrows + 1], nj, MPI_INT, (rank + 1) % numprocs, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Recv(old[0], nj, MPI_INT, (numprocs + rank - 1) % numprocs, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    #ifdef DEBUG
     timings[3] += MPI_Wtime();
     #endif
 
-
-
-    // update first and last row
-    #ifdef DEBUG
-    timings[4] -= MPI_Wtime();
-    #endif
-    for (j = 1; j <= bwidth; j++) {
-        im = 1 - 1;
-        ip = 1 + 1;
-        jm = j - 1;
-        jp = j + 1;
-
-        nsum = old[im][jp] + old[1][jp] + old[ip][jp]
-            + old[im][j] + old[ip][j]
-            + old[im][jm] + old[1][jm] + old[ip][jm];
-
-        switch (nsum) {
-        // a new organism is born
-        case 3:
-            new[1][j] = 1;
-            break;
-        // nothing happens
-        case 2:
-            new[1][j] = old[1][j];
-            break;
-        // the organism, if any, dies
-        default:
-            new[1][j] = 0;
-        }
-    }
-    for (j = 1; j <= bwidth; j++) {
-        im = numrows - 1;
-        ip = numrows + 1;
-        jm = j - 1;
-        jp = j + 1;
-
-        nsum = old[im][jp] + old[numrows][jp] + old[ip][jp]
-            + old[im][j] + old[ip][j]
-            + old[im][jm] + old[numrows][jm] + old[ip][jm];
-
-        switch (nsum) {
-        // a new organism is born
-        case 3:
-            new[numrows][j] = 1;
-            break;
-        // nothing happens
-        case 2:
-            new[numrows][j] = old[numrows][j];
-            break;
-        // the organism, if any, dies
-        default:
-            new[numrows][j] = 0;
-        }
-    }
-    #ifdef DEBUG
-    timings[4] += MPI_Wtime();
-    #endif
-
-
     // copy new state into old state
     #ifdef DEBUG
-    timings[5] -= MPI_Wtime();
+    timings[4] -= MPI_Wtime();
     #endif
     for (i = 1; i <= numrows; i++) {
         for (j = 1; j <= bwidth; j++) {
@@ -162,7 +103,7 @@ void doTimeStep() {
         }
     }
     #ifdef DEBUG
-    timings[5] += MPI_Wtime();
+    timings[4] += MPI_Wtime();
     #endif
 }
 
@@ -180,8 +121,9 @@ int main(int argc, char *argv[]) {
     nsteps = atoi(argv[3]);
 
     #ifdef DEBUG
-    for (i = 0; i < 10; i++)
+    for (i = 0; i < 10; i++) {
         timings[i] = 0;
+    }
     #endif
 
     // MPI initialization
@@ -198,6 +140,49 @@ int main(int argc, char *argv[]) {
         ++numrows;
     }
 
+    if (rank == 0) {
+
+        // this branch is used only by process 0
+        // to send rows to all processes
+
+        old = malloc(bheight*sizeof(int*));
+        for (i = 0; i < bheight; i ++) {
+            old[i] = malloc(bwidth*sizeof(int));
+        }
+
+        for (i = 0; i < bwidth; i++) {
+            for (j = 0; j < bheight; j++) {
+                x = rand()/((float)RAND_MAX + 1);
+                if (x < 0.5) {
+                    old[i][j] = 0;
+                } else {
+                    old[i][j] = 1;
+                }
+            }
+        }
+
+        MPI_Request requests[bheight];
+        int rem = bheight % numprocs;
+        int change = numrows * rem;
+        int dest;
+
+        //  initialize board
+        for (i = 0; i < bheight; i++) {
+            dest = (i < change) ?
+                   (i / numrows) :
+                   (i - change) / (bheight / numprocs) + rem;
+            MPI_Isend(old[i], bwidth, MPI_INT, dest, 0, MPI_COMM_WORLD, requests + i);
+        }
+
+        for (i = 0; i < bheight; i++) {
+            MPI_Wait(requests + i, MPI_STATUS_IGNORE);
+            free(old[i]);
+        }
+
+        free(old);
+
+    }
+
     // allocate arrays
     // add two for ghost cells
     ni = numrows + 2;
@@ -205,60 +190,14 @@ int main(int argc, char *argv[]) {
     old = malloc(ni*sizeof(int*));
     new = malloc(ni*sizeof(int*));
 
-    for ( i = 0; i < ni; i++) {
+    for (i = 0; i < ni; i++) {
         old[i] = malloc(nj*sizeof(int));
         new[i] = malloc(nj*sizeof(int));
-    }
-
-    if (rank == 0) {
-
-        // this branch is used only by process 0
-        // to send rows to all processes
-
-        // attach buffer which size include communication overhead
-        MPI_Pack_size(bwidth, MPI_INT, MPI_COMM_WORLD, &buffer_size);
-        buffer_size += MPI_BSEND_OVERHEAD; // add Bsend overhead
-        buffer_size *= bheight; // multiply by number of total send
-        buffer = malloc(buffer_size);
-        MPI_Buffer_attach(buffer, buffer_size);
-
-
-        int *row = malloc(bwidth*sizeof(int));
-
-        int rem = bheight % numprocs;
-        int change = numrows * rem;
-
-        //  initialize board
-        for(i = 0; i < bheight; i++) {
-            for (j = 0; j < bwidth; j++) {
-                x = rand()/((float)RAND_MAX + 1);
-                if(x<0.5) {
-                    row[j] = 0;
-                } else {
-                    row[j] = 1;
-                }
-            }
-            int dest = (i < change) ?
-                       (i / numrows) :
-                       (i - change) / (bheight / numprocs) + rem;
-            MPI_Bsend(row, bwidth, MPI_INT, dest, 0, MPI_COMM_WORLD);
-        }
-
-        free(row);
-
     }
 
     // receive data from node 0
     for (i = 1; i <= numrows; i++) {
         MPI_Recv(old[i] + 1, bwidth, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    }
-
-    // barrier to ensure all processes has already
-    // receive data, so the buffer can be detached
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    if (rank == 0) {
-        MPI_Buffer_detach(buffer, &buffer_size);
     }
 
     // attach buffer for Bsend during iterations
@@ -269,6 +208,9 @@ int main(int argc, char *argv[]) {
     buffer_size *= 4;
     buffer = malloc(buffer_size);
     MPI_Buffer_attach(buffer, buffer_size);
+
+
+    MPI_Barrier(MPI_COMM_WORLD);
 
     start = MPI_Wtime();
 
@@ -288,7 +230,7 @@ int main(int argc, char *argv[]) {
     // Iterations are done; sum the number of live cells
     isum = 0;
     for (i = 1; i <= numrows; i++) {
-        for(j = 1; j <= bwidth; j++) {
+        for (j = 1; j <= bwidth; j++) {
             isum += old[i][j];
         }
     }
@@ -303,9 +245,11 @@ int main(int argc, char *argv[]) {
 
     #ifdef DEBUG
     MPI_Reduce(&timings, &gtimings, 10, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    for (i = 0; i < 10; i++)
-        if (rank == 0)
+    for (i = 0; i < 10; i++) {
+        if (rank == 0) {
             printf("Timing %i: %f\n", i, gtimings[i]);
+        }
+    }
     #endif
 
     MPI_Finalize();
