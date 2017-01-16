@@ -205,8 +205,8 @@ int main(int argc, char *argv[]) {
     // attach buffer for Bsend during iterations
     MPI_Pack_size(nj, MPI_INT, MPI_COMM_WORLD, &buffer_size);
     buffer_size += MPI_BSEND_OVERHEAD;
-    // two rows are sent for each iteration and a
-    // process can be already doing the next iteration
+    // two rows are sent for each iteration
+    // a process can be 1 it in advance
     buffer_size *= 4;
     buffer = malloc(buffer_size);
     MPI_Buffer_attach(buffer, buffer_size);
