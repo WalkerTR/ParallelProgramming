@@ -33,7 +33,7 @@ for job in `jobs -p`; do
     wait $job
 done
 
-echo "DAS4 JOBS EXECUTION WITH INPUT SIZE $1 $2 $3" > timings/out_${VERSION}_$1_$2_$3.txt
+echo "DAS4 JOBS EXECUTION WITH INPUT SIZE $1 $2 $3" >> timings/out_${VERSION}_$1_$2_$3.txt
 echo >> timings/out_${VERSION}_${1}_${2}_${3}.txt
 echo >> timings/out_${VERSION}_${1}_${2}_${3}.txt
 echo >> timings/out_${VERSION}_${1}_${2}_${3}.txt
@@ -49,3 +49,5 @@ for i in ${N[@]}; do
     echo >> timings/out_${VERSION}_${1}_${2}_${3}.txt
     rm out_${VERSION}_${1}_${2}_${3}_${i}.txt
 done
+
+echo -e "\n\n\n\n\n" >> timings/out_${VERSION}_${1}_${2}_${3}.txt
