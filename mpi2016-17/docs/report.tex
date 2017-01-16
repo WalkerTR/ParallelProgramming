@@ -1,6 +1,7 @@
 \documentclass{article}
 
 \usepackage{hyperref}
+\usepackage{graphicx}
 \usepackage{amsmath}
 
 
@@ -10,6 +11,8 @@
     linkcolor = blue,
     anchorcolor = blue
 }
+
+\graphicspath{{img/}}
 
 
 
@@ -79,11 +82,67 @@ MPI communication tags are not used in the application because the communication
 The parallel program should have a nearly linear speedup, as we already said in the section \nameref{sec:parallelalgorithm}. To measure the performance gain, the running time is measured by \texttt{MPI\_Wtime}, which returns the elapsed time on the calling processor. Once measured the local running times, we can take the maximum of them as the global running time. Choosing the maximum instead of the average provide a stricter speedup value and penalize load imbalances. However, when different executions leads to different global running times, the minimum one is preferred. In fact, the execution time of a program running in an interactive system (and even more with many interactive systems interconnected) is always delayed by a random value. Choosing the minimum execution time allows to partially get rid of the random delay. \\
 After the first performance measurement a superlinear speedup has been detected. This was not suppose to happen, therefore after further investigation the reason has been found in the copy of the boundary cells. The parallel program first copies the right-left borders and then sends the top-bottom rows (included ghost cells). The sequential program, however, copies the four corner cells separately and this introduce a noticeable overhead. Computer architectures are designed to provide the maximum performance when reading memory sequentially. Accessing the memory randomly, like accessing the four corners, has a big impact on performance. For this reason, in order to respect the same structure of the parallel program, \emph{the sequential program has been modified and the four corners are now copied together with top-bottom boundaries}.
 
+The speedup has been measured for three problem sizes:
+\begin{itemize}
+    \item 1000 $\times$ 1000
+    \item 5000 $\times$ 5000
+    \item 7500 $\times$ 7500
+\end{itemize}
+When comparing problem sizes, we compare only the dimensions of the matrix. In fact, the number of iterations and the running time depends linearly, therefore the speedup depends only on the size of the matrix.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.8\textwidth]{speedup_v1.png}
+\caption{Speedup for different problem sizes}
+\label{fig:speedupcomparison}
+\end{figure}
+
+The chart in \autoref{fig:speedupcomparison} clearly shows that as the problem size increase, the speedup decrease. In order to understand the reasons of this slow down, the program has been modified to keep track of the execution time of all phases. Since the instructions for monitoring each phase intruduce some overhead, they are inserted in the program by the preprocessor only when the word \texttt{DEBUG} is defined. The result are summed up in \autoref{tab:timeperphasecomparison}. It is clear that the performance loss is due to the waiting time for receiving the messages, which goes from 3.54\% for the smallest problem size up to 37.95\% for the biggest problem size. Moreover other phases are pure computation on data which size scale linearly, hence they scale linearly. An attemp to reduce the time of the receives is described in the paragraph \nameref{sec:overlappingcommcomp}.
+
+
+\begin{table}
+\centering
+\begin{tabular}{|l|c|c|c|}
+\hline
+& Size 1 & Size 2 & Size 3\\
+\hline
+Boundaries copy & 0.58 (0.09\%) & 0.32 (0.03\%) & 0.39s (0.03\%) \\
+\hline
+Sends & 2.52 (0.39\%) & 0.48 (0.06\%) & 0.41s (0.03\%) \\
+\hline
+Receives & 22.64 (3.54\%) & 194.81 (23.01\%) & 476.71s (37.95\%) \\
+\hline
+Update & 469.15 (73.36\%) & 501.71 (59.26\%) & 601.32s (47.88\%) \\
+\hline
+Copy & 144.65 (22.62\%) & 149.36 (17.64\%) & 177.17s (14.11\%) \\
+\hline
+\end{tabular}
+\caption{Time per phase comparison on 16 nodes} \label{tab:timeperphasecomparison}
+\end{table}
+
+
+
+
+
+
+ 
+
+
+
+
 
 
 
 \section{Improvements}
 
+\subsection{Overlapping communication and computation} \label{sec:overlappingcommcomp}
+\subsection{Avoiding needless communication}
+\subsection{Memory optimization}
+\subsection{}
+
+
+
+\section{Final results}
 
 
 

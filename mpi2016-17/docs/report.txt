@@ -10,7 +10,6 @@ problem size = matrix size
 TODO:
 • don't send to proc 0
 • memory optimized
-• barrier before starting
 • overlapping communication/computation
 • check numproc < rows
     if (bheight < numprocs) {

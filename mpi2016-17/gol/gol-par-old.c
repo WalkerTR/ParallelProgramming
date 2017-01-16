@@ -24,31 +24,6 @@ double rtime, grtime;
 double timings[10], gtimings[10];
 #endif
 
-inline void update() {
-    im = i - 1;
-    ip = i + 1;
-    jm = j - 1;
-    jp = j + 1;
-
-    nsum = old[im][jp] + old[i][jp] + old[ip][jp]
-        + old[im][j] + old[ip][j]
-        + old[im][jm] + old[i][jm] + old[ip][jm];
-
-    switch (nsum) {
-    // a new organism is born
-    case 3:
-        new[i][j] = 1;
-        break;
-    // nothing happens
-    case 2:
-        new[i][j] = old[i][j];
-        break;
-    // the organism, if any, dies
-    default:
-        new[i][j] = 0;
-    }
-}
-
 // update board for step n
 void doTimeStep() {
 
@@ -74,19 +49,6 @@ void doTimeStep() {
     timings[1] += MPI_Wtime();
     #endif
 
-    // update inner board
-    #ifdef DEBUG
-    timings[3] -= MPI_Wtime();
-    #endif
-    for (i = 2; i < numrows; i++) {
-        for (j = 1; j <= bwidth; j++) {
-            update();
-        }
-    }
-    #ifdef DEBUG
-    timings[3] += MPI_Wtime();
-    #endif
-
     // Receive rows from adjacent process
     #ifdef DEBUG
     timings[2] -= MPI_Wtime();
@@ -97,17 +59,35 @@ void doTimeStep() {
     timings[2] += MPI_Wtime();
     #endif
 
-    // update boundary rows
+    // update board
     #ifdef DEBUG
     timings[3] -= MPI_Wtime();
     #endif
-    i = 1;
-    for (j = 1; j <= bwidth; j++) {
-        update();
-    }
-    i = numrows;
-    for (j = 1; j <= bwidth; j++) {
-        update();
+    for (i = 1; i <= numrows; i++) {
+        for (j = 1; j <= bwidth; j++) {
+            im = i - 1;
+            ip = i + 1;
+            jm = j - 1;
+            jp = j + 1;
+
+            nsum = old[im][jp] + old[i][jp] + old[ip][jp]
+                + old[im][j] + old[ip][j]
+                + old[im][jm] + old[i][jm] + old[ip][jm];
+
+            switch (nsum) {
+            // a new organism is born
+            case 3:
+                new[i][j] = 1;
+                break;
+            // nothing happens
+            case 2:
+                new[i][j] = old[i][j];
+                break;
+            // the organism, if any, dies
+            default:
+                new[i][j] = 0;
+            }
+        }
     }
     #ifdef DEBUG
     timings[3] += MPI_Wtime();
@@ -126,7 +106,6 @@ void doTimeStep() {
     timings[4] += MPI_Wtime();
     #endif
 }
-
 
 int main(int argc, char *argv[]) {
 
@@ -161,6 +140,51 @@ int main(int argc, char *argv[]) {
         ++numrows;
     }
 
+    if (rank == 0) {
+
+        // this branch is used only by process 0
+        // to send rows to all processes
+
+        int **matrix;
+
+        matrix = malloc(bheight*sizeof(int*));
+        for (i = 0; i < bheight; i ++) {
+            matrix[i] = malloc(bwidth*sizeof(int));
+        }
+
+        for (i = 0; i < bheight; i++) {
+            for (j = 0; j < bwidth; j++) {
+                x = rand()/((float)RAND_MAX + 1);
+                if (x < 0.5) {
+                    matrix[i][j] = 0;
+                } else {
+                    matrix[i][j] = 1;
+                }
+            }
+        }
+
+        MPI_Request requests[bheight];
+        int rem = bheight % numprocs;
+        int change = numrows * rem;
+        int dest;
+
+        //  initialize board
+        for (i = 0; i < bheight; i++) {
+            dest = (i < change) ?
+                   (i / numrows) :
+                   (i - change) / (bheight / numprocs) + rem;
+            MPI_Isend(matrix[i], bwidth, MPI_INT, dest, 0, MPI_COMM_WORLD, requests + i);
+        }
+
+        for (i = 0; i < bheight; i++) {
+            MPI_Wait(requests + i, MPI_STATUS_IGNORE);
+            free(matrix[i]);
+        }
+
+        free(matrix);
+
+    }
+
     // allocate arrays
     // add two for ghost cells
     ni = numrows + 2;
@@ -173,47 +197,9 @@ int main(int argc, char *argv[]) {
         new[i] = malloc(nj*sizeof(int));
     }
 
-    if (rank == 0) {
-
-        // this branch is used only by process 0
-        // to send rows to all processes
-
-        int *row = malloc(bwidth*sizeof(int));
-        int rem = bheight % numprocs;
-        int change = numrows * rem;
-        int dest;
-
-        //  initialize board
-        for (i = 0; i < bheight; i++) {
-            for (j = 0; j < bwidth; j++) {
-                x = rand()/((float)RAND_MAX + 1);
-                if (x < 0.5) {
-                    row[j] = 0;
-                } else {
-                    row[j] = 1;
-                }
-            }
-            dest = (i < change) ?
-                   (i / numrows) :
-                   (i - change) / (bheight / numprocs) + rem;
-            if (dest != 0) {
-                MPI_Ssend(row, bwidth, MPI_INT, dest, 0, MPI_COMM_WORLD);
-            } else {
-                for (j = 0; j < bwidth; j++) {
-                    old[i + 1][j + 1] = row[j];
-                }
-            }
-        }
-
-        free(row);
-
-    }
-
     // receive data from node 0
-    if (rank != 0) {
-        for (i = 1; i <= numrows; i++) {
-            MPI_Recv(old[i] + 1, bwidth, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        }
+    for (i = 1; i <= numrows; i++) {
+        MPI_Recv(old[i] + 1, bwidth, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
 
     // attach buffer for Bsend during iterations

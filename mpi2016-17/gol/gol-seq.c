@@ -85,20 +85,20 @@ int main(int argc, char *argv[]) {
   new = malloc(ni*sizeof(int*));
 
   for(i=0; i<ni; i++){
-    old[i] = malloc(nj*sizeof(int));
-    new[i] = malloc(nj*sizeof(int));
+	old[i] = malloc(nj*sizeof(int));
+	new[i] = malloc(nj*sizeof(int));
   }
 
 	/*  initialize board */
   for(i=1; i<=bwidth; i++){
-    for(j=1; j<=bheight; j++){
-      x = rand()/((float)RAND_MAX + 1);
-      if(x<0.5){
+	for(j=1; j<=bheight; j++){
+	  x = rand()/((float)RAND_MAX + 1);
+	  if(x<0.5){
 	old[i][j] = 0;
-      } else {
+	  } else {
 	old[i][j] = 1;
-      }
-    }
+	  }
+	}
   }
 
 	if(gettimeofday(&start, 0) != 0) {
@@ -123,9 +123,9 @@ int main(int argc, char *argv[]) {
   /*  Iterations are done; sum the number of live cells */
   isum = 0;
   for(i=1; i<=bwidth; i++){
-    for(j=1; j<=bheight; j++){
-      isum = isum + old[i][j];
-    }
+	for(j=1; j<=bheight; j++){
+	  isum = isum + old[i][j];
+	}
   }
 
   printf("Number of live cells = %d\n", isum);
