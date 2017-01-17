@@ -22,7 +22,7 @@ double rtime, grtime;
 MPI_Request req1, req2;
 
 #ifdef DEBUG
-double timings[10], gtimings[10];
+double timings[5], gtimings[5];
 #endif
 
 inline void update() {
@@ -102,8 +102,6 @@ void doTimeStep() {
     timings[2] += MPI_Wtime();
     #endif
 
-    MPI_Barrier(MPI_COMM_WORLD);
-
     // update boundary rows
     #ifdef DEBUG
     timings[3] -= MPI_Wtime();
@@ -166,6 +164,16 @@ int main(int argc, char *argv[]) {
     numrows = bheight / numprocs;
     if (rank < bheight % numprocs) {
         ++numrows;
+    }
+
+    // trick to work correctly when
+    // bheight < numprocs
+    if (bheight < numprocs) {
+        if (myid < bheight) {
+            numprocs = bheight;
+        } else {
+            nsteps = 0;
+        }
     }
 
     // allocate arrays

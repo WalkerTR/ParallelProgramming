@@ -13,15 +13,16 @@ Conway Game of Life
 int bwidth, bheight, nsteps;
 int numprocs, rank, numrows;
 int buffer_size;
-void *buffer;
+int **buffer;
 int i, j, n, im, ip, jm, jp, ni, nj, nsum, isum, gisum;
 int **old, **new;
 float x;
 double start, end;
 double rtime, grtime;
+MPI_Request req1, req2;
 
 #ifdef DEBUG
-double timings[10], gtimings[10];
+double timings[5], gtimings[5];
 #endif
 
 // update board for step n
@@ -43,8 +44,12 @@ void doTimeStep() {
     #ifdef DEBUG
     timings[1] -= MPI_Wtime();
     #endif
-    MPI_Bsend(old[1], nj, MPI_INT, (numprocs + rank - 1) % numprocs, 0, MPI_COMM_WORLD);
-    MPI_Bsend(old[numrows], nj, MPI_INT, (rank + 1) % numprocs, 0, MPI_COMM_WORLD);
+    memcpy(buffer[n%2], old[1], nj*sizeof(int));
+    memcpy(buffer[n%2] + nj, old[numrows], nj*sizeof(int));
+    MPI_Isend(buffer[n%2], nj, MPI_INT, (numprocs + rank - 1) % numprocs, 0, MPI_COMM_WORLD, &req1);
+    MPI_Isend(buffer[n%2] + nj, nj, MPI_INT, (rank + 1) % numprocs, 0, MPI_COMM_WORLD, &req2);
+    MPI_Request_free(&req1);
+    MPI_Request_free(&req2);
     #ifdef DEBUG
     timings[1] += MPI_Wtime();
     #endif
@@ -202,15 +207,10 @@ int main(int argc, char *argv[]) {
         MPI_Recv(old[i] + 1, bwidth, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
 
-    // attach buffer for Bsend during iterations
-    MPI_Pack_size(nj, MPI_INT, MPI_COMM_WORLD, &buffer_size);
-    buffer_size += MPI_BSEND_OVERHEAD;
-    // two rows are sent for each iteration
-    // a process can be 1 it in advance
-    buffer_size *= 4;
-    buffer = malloc(buffer_size);
-    MPI_Buffer_attach(buffer, buffer_size);
-
+    // create send buffers
+    buffer = malloc(2 * sizeof(int*));
+    buffer[0] = malloc(2 * nj * sizeof(int));
+    buffer[1] = malloc(2 * nj * sizeof(int));
 
     MPI_Barrier(MPI_COMM_WORLD);
 
