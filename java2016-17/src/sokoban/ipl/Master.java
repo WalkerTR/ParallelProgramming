@@ -15,7 +15,7 @@ import java.util.*;
 
 public class Master implements Runnable {
 
-    private static final int MAXHOPS = 6;
+    private static final int MAXHOPS = 5;
     private static BoardCache cache = new BoardCache();
 
     private Ibis ibis;
@@ -66,16 +66,18 @@ public class Master implements Runnable {
                 System.out.print("Bound now:");
 
                 int bound = 0;
-                int solutions;
+                int solutions = 0;
+
+                long ta=0,tb=0,tc=0,td=0,te=0;
 
                 do {
                     bound++;
                     System.out.print(" " + bound);
-                    solutions = 0;
                     List<Board> boards = new ArrayList<>();
                     Board init = cache.get(board);
                     boards.add(init);
                     init.setBound(bound);
+                    ta -= System.currentTimeMillis();
                     for (int i = 0; i < bound && i < MAXHOPS; i++) {
                         List<Board> newBoards = new ArrayList<>();
                         for (Board b : boards) {
@@ -84,9 +86,12 @@ public class Master implements Runnable {
                         }
                         boards = newBoards;
                     }
+                    ta += System.currentTimeMillis();
                     if (bound > MAXHOPS) {
                         Iterator<Board> it = boards.iterator();
                         int responses = 0;
+
+                        tb -= System.currentTimeMillis();
                         for (SendPort port : pool.values()) {
                             if (it.hasNext()) {
                                 WriteMessage message = port.newMessage();
@@ -94,7 +99,9 @@ public class Master implements Runnable {
                                 message.finish();
                             }
                         }
+                        tb += System.currentTimeMillis();
 
+                        tc -= System.currentTimeMillis();
                         while (it.hasNext()) {
                             ReadMessage rmessage = resultsPort.receive();
                             solutions += rmessage.readInt();
@@ -105,20 +112,25 @@ public class Master implements Runnable {
                             wmessage.writeObject(it.next());
                             wmessage.finish();
                         }
+                        tc += System.currentTimeMillis();
 
+                        td -= System.currentTimeMillis();
                         while (responses < boards.size()) {
                             ReadMessage message = resultsPort.receive();
                             solutions += message.readInt();
                             responses++;
                             message.finish();
                         }
+                        td += System.currentTimeMillis();
 
                     } else {
+                        te -= System.currentTimeMillis();
                         for (Board b : boards) {
                             if (b.isSolved()) {
                                 solutions++;
                             }
                         }
+                        te += System.currentTimeMillis();
                     }
 
                 } while (solutions == 0);
@@ -129,6 +141,16 @@ public class Master implements Runnable {
                 long end = System.currentTimeMillis();
 
                 System.err.println("Sokoban took " + (end - start) + " milliseconds");
+
+
+                System.err.println();
+                System.err.println();
+                System.err.println("TIMINGS");
+                System.err.println("A: " + ta);
+                System.err.println("B: " + tb);
+                System.err.println("C: " + tc);
+                System.err.println("D: " + td);
+                System.err.println("E: " + te);
 
             }
 
