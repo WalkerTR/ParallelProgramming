@@ -25,9 +25,11 @@ readpgm(C, N, M, {1..N, 1..M}, tcond, 0.0, 1.0);
 proc do_compute() {
   const BigD = {0..N+1, 0..M+1};
   const D: subdomain(BigD) = {1..N, 1..M};
-  
+
   const directWeight: real = (sqrt(2) / (sqrt(2) + 1)) / 4;
   const diagonalWeight: real = (1 / (sqrt(2) + 1)) / 4;
+
+
 
 
   var A, Temp, Cond: [BigD] real;
@@ -47,20 +49,24 @@ proc do_compute() {
   t.start();
   do {
 
-    A[0..N+1, 0] = A[0..N+1, M];    
-    A[0..N+1, M+1] = A[0..N+1, 1];
+    forall i in 0..N+1 {
+      A[i, 0] = A[i, M];
+      A[i, M+1] = A[i, 1];
+    }
 
-    for (i, j) in D {
-      Temp[i, j] = ((Cond[i, j]) * A[i,j]) + ((1 - Cond[i, j]) * (
-                       (directWeight * A[i-1, j]) +
-                       (directWeight * A[i, j-1]) +
-                       (directWeight * A[i, j+1]) +
-                       (directWeight * A[i+1, j]) +
-                       (diagonalWeight * A[i-1, j-1]) +
-                       (diagonalWeight * A[i-1, j+1]) +
-                       (diagonalWeight * A[i+1, j-1]) +
-                       (diagonalWeight * A[i+1, j+1])
-                     ));
+    forall (i, j) in D {
+      Temp[i, j] = Cond[i, j] * A[i, j]
+                + (1 - Cond[i, j]) * (
+                      diagonalWeight * (A[i-1, j-1] +
+                                        A[i-1, j+1] +
+                                        A[i+1, j-1] +
+                                        A[i+1, j+1])
+                      +
+                      directWeight * (A[i-1, j] +
+                                      A[i, j-1] +
+                                      A[i, j+1] +
+                                      A[i+1, j])
+                );
     }
 
     it = it + 1;
