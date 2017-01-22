@@ -1,0 +1,96 @@
+use util;
+use Time;
+
+config const N = 150;
+config const M = 100;
+config const I = 42;
+config const E = 0.1;
+config const L = -100.0;
+config const H = 100.0;
+config const P = 1;
+config const C = "/home/hphijma/images/pat1_150x100.pgm";
+config const T = "/home/hphijma/images/pat2_150x100.pgm";
+config const help_params = false;
+
+/* Add your code here */
+
+print_parameters();
+
+const tinit: [1..N, 1..M] real;
+readpgm(T, N, M, {1..N, 1..M}, tinit, L, H);
+
+const tcond: [1..N, 1..M] real;
+readpgm(C, N, M, {1..N, 1..M}, tcond, 0.0, 1.0);
+
+proc do_compute() {
+  const BigD = {0..N+1, 0..M+1};
+  const D: subdomain(BigD) = {1..N, 1..M};
+  const Halo = {-1..1, -1..1};
+  
+  const directWeight: real = (sqrt(2) / (sqrt(2) + 1)) / 4;
+  const diagonalWeight: real = (1 / (sqrt(2) + 1)) / 4;
+  var weights: [Halo] real;
+  weights[-1,0] = directWeight;
+  weights[0,-1] = directWeight;
+  weights[0,1] = directWeight;
+  weights[1,0] = directWeight;
+  weights[-1,-1] = diagonalWeight;
+  weights[-1,1] = diagonalWeight;
+  weights[1,-1] = diagonalWeight;
+  weights[1,1] = diagonalWeight;
+
+
+
+  var A, Temp, Cond: [BigD] real;
+  var r: results;
+  var t: Timer;
+  var it: int;
+  var e: real;
+
+  A[D] = tinit;
+  Cond[D] = tcond;
+
+
+  A[D.exterior(-1,0)] = A[D.interior(-1,0)];
+  A[D.exterior(1,0)] = A[D.interior(1,0)];
+
+
+  t.start();
+  do {
+
+    A[0..N+1, 0] = A[0..N+1, M];
+    A[0..N+1, M+1] = A[0..N+1, 1];
+
+    for idx in D {
+      const halo = weights * A[Halo.translate(idx)];
+      Temp[idx] = 0;
+      for i in halo.domain do
+        Temp[idx] += halo[i];
+      Temp[idx] *= 1 - Cond[idx];
+      Temp[idx] += Cond[idx] * A[idx];
+    }
+
+    it = it + 1;
+    e = 0;
+    for idx in D {
+      if abs(A[idx] - Temp[idx]) > e {
+        e = A[idx] - Temp[idx];
+      }
+    }
+    A[D] = Temp[D];
+  } while(it < I && e > E);
+  t.stop();
+
+  r.tmin = min reduce A[D];
+  r.tmax = max reduce A[D];
+  r.maxdiff = e;
+  r.niter = it;
+  r.tavg = + reduce A[D] / D.size;
+  r.time = t.elapsed();
+
+  return r;
+}
+
+/* End add your code here */
+
+util.main();

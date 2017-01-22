@@ -1,0 +1,2 @@
+Domines are inspected at runtime, very low efficiency
+Same iterations but at lower level is much more efficient
