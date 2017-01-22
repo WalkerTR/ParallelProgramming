@@ -37,10 +37,15 @@ public class Worker implements Runnable {
             resultsPort.newMessage().finish();
 
             Board board;
+            long tt = 0;
+            boolean first = true;
             do {
+                if (!first) tt -= System.currentTimeMillis();
                 ReadMessage read = jobsPort.receive();
+                if (!first) tt += System.currentTimeMillis();
                 board = (Board) read.readObject();
                 read.finish();
+                first = false;
 
                 if (board != null) {
                     int sol = solutions(board);
@@ -51,6 +56,7 @@ public class Worker implements Runnable {
             } while (board != null);
             resultsPort.close();
             jobsPort.close();
+            System.out.println("Worker waited for " + tt + " millis");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {

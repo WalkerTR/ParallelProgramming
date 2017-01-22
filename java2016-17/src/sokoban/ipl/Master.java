@@ -15,7 +15,7 @@ import java.util.*;
 
 public class Master implements Runnable {
 
-    private static final int MAXHOPS = 5;
+    private static final int MAXHOPS = 9;
     private static BoardCache cache = new BoardCache();
 
     private Ibis ibis;
@@ -105,8 +105,8 @@ public class Master implements Runnable {
                         while (it.hasNext()) {
                             ReadMessage rmessage = resultsPort.receive();
                             solutions += rmessage.readInt();
-                            responses++;
                             rmessage.finish();
+                            responses++;
 
                             WriteMessage wmessage = pool.get(rmessage.origin().ibisIdentifier()).newMessage();
                             wmessage.writeObject(it.next());
