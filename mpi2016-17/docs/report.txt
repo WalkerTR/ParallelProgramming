@@ -2,6 +2,7 @@ Row partitioning not good if bheight < numprocs. Same for column partitioning wh
 no tags.. not needed..
 receive inverted in case only one process
 take max time
+manual buffering
 problem size = matrix size
 
 
