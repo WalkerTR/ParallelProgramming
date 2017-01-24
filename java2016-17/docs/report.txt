@@ -1,0 +1,23 @@
+Row partitioning not good if bheight < numprocs. Same for column partitioning when bwidth < numprocs.
+no tags.. not needed..
+receive inverted in case only one process
+take max time
+manual buffering
+problem size = matrix size
+
+
+
+
+TODO:
+• don't send to proc 0
+• memory optimized
+• overlapping communication/computation
+• check numproc < rows
+    if (bheight < numprocs) {
+        if (myid < bheight) {
+            numprocs = bheight;
+        } else {
+            nsteps = 0;
+        }
+    }
+• transpose
