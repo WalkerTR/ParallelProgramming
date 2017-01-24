@@ -169,7 +169,7 @@ int main(int argc, char *argv[]) {
     // trick to work correctly when
     // bheight < numprocs
     if (bheight < numprocs) {
-        if (myid < bheight) {
+        if (rank < bheight) {
             numprocs = bheight;
         } else {
             nsteps = 0;
