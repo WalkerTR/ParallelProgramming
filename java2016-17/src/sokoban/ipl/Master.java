@@ -122,6 +122,7 @@ public class Master implements Runnable {
                             if (b.isSolved()) {
                                 solutions++;
                             }
+                            cache.put(b);
                         }
                         te += System.currentTimeMillis();
                     }
