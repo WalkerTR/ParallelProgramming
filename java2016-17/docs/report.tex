@@ -52,14 +52,27 @@ On the other hand, the workers are accepting new jobs from the master and, when 
 
 \section{Implementation}
 The parallel algorithm is implemented by means of two different classes which encapsulate the master and the worker behaviour. The program must work for each number of node (even one), therefore the master node must be also a worker node. Since we have two different classes that incapsulate the two roles, the master is executed in a different thread. \\
-The number of nodes is knows before the execution, hence we can submit it to Ibis using the java argument \texttt{-Dibis.pool.size=#}. In this way, Ibis allows to wait until all instances have joined the pool and allows to retrieve the pool size at runtime. We can also use Ibis to elect the server and the main of the program works as follows:
+Ibis has a built in function that elects a single node from all the joined instances. This allows to pick up a random node that will work as master. Since the number of nodes is known before the execution, we can submit it to Ibis using the java argument \texttt{-Dibis.pool.size=\#}. In this way, Ibis allows to wait until all instances have joined the pool and allows to retrieve the pool size at runtime. \\
+The main of the program works as follows:
 \begin{itemize}
     \item Ibis elects the server.
     \item If the current node is the server, it reads the board from the file and execute the \texttt{Server} class in a new thread.
-    \item The \texttt{Worker} class is executed.
+    \item The \texttt{Worker} class is executed in the main thread.
 \end{itemize}
+Though the Master and the Worker are executed in two different threads, the level of parallelism is nearly zero. In fact, during the first part of the resolution workers are idle and during the second part of the resolution the master is doing IO only. For speedup measurement we can therefore assume that Master and Worker do not run concurrently. \\
+In the program three different channels are used:
+\begin{itemize}
+    \item \textbf{greets}, used as synchronization point and to send the receive ports used by workers to accept incoming jobs.
+    \item \textbf{jobSubmit}, used by the master to send the jobs to the workers.
+    \item \textbf{results}, used by the workers to send the result back to the master.
+\end{itemize}
+In order to avoid deadlock all receive ports are opened before send ports. On the other hand, send ports are closed before receive ports.
+
 
 \subsection{Master}
+At the beginning, the master wait for the greeting messages from all workers containing the port used to accept new jobs. Moreover, this works as synchronization point to ensure all workers are connected and ready. \\
+After the startup phase, the master start solving the board by increasing the bound. Instead of using a recursive function, an iterative one has been used.
+
 
 \subsection{Worker}
 
