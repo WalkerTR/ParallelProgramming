@@ -24,17 +24,16 @@ public class Worker implements Runnable {
             ReceivePort jobsPort = ibis.createReceivePort(Sokoban.jobSubmitPortType, null);
             SendPort resultsPort = ibis.createSendPort(Sokoban.resultsPortType);
 
+            jobsPort.enableConnections();
+            resultsPort.connect(server, "results");
+
+
+            // greetings - sync point
             greetsPort.connect(server, "greets");
             WriteMessage greets = greetsPort.newMessage();
             greets.writeObject(jobsPort.identifier());
             greets.finish();
             greetsPort.close();
-
-            jobsPort.enableConnections();
-            resultsPort.connect(server, "results");
-
-            // synchronization point
-            resultsPort.newMessage().finish();
 
             Board board;
             long tt = 0;
@@ -63,6 +62,8 @@ public class Worker implements Runnable {
             e.printStackTrace();
         }
     }
+
+
 
     /**
      * expands this board into all possible positions, and returns the number of

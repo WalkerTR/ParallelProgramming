@@ -1,17 +1,12 @@
 package sokoban.ipl;
 
 import ibis.ipl.*;
-import ibis.ipl.Ibis;
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.ReadMessage;
-import ibis.ipl.ReceivePort;
-import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.SendPort;
-import ibis.ipl.WriteMessage;
-import ibis.ipl.impl.*;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 public class Master implements Runnable {
 
@@ -38,6 +33,9 @@ public class Master implements Runnable {
     @Override
     public void run() {
         try {
+            resultsPort.enableConnections();
+
+            // greetings - sync point
             greetsPort.enableConnections();
             for (int i = 0; i < ibis.registry().getPoolSize(); i++) {
                 ReadMessage message = greetsPort.receive();
@@ -49,13 +47,6 @@ public class Master implements Runnable {
                 pool.put(message.origin().ibisIdentifier(), replyPort);
             }
             greetsPort.disableConnections();
-
-            resultsPort.enableConnections();
-
-            // synchronization point to ensure all results sendport are connected
-            for (int i = 0; i < ibis.registry().getPoolSize(); i++) {
-                resultsPort.receive().finish();
-            }
 
             // run only if board is set
             if (board != null) {
