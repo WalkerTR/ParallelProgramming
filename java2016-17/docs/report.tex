@@ -27,6 +27,7 @@
 \maketitle
 
 \section{Introduction}
+The Sokoban is a puzzle game, where according the rules the player can move his position inside the board until a particular condition is met. The given sequential algorithm explore the solutions space until a combination of moves bring the initial state to a final state. Since the solutions space is infinite, the game il solved by gradually increasing the maximum number of moves that the player can do. This means that the states are examined more the once during the resolution. In this report a solution to parallelize the sequential program will be provided, with the main aim of describing the techniques used and measuring the performance increasement.
 
 \section{Parallel algorithm}
 The provided sequential program uses a recursive function to compute all possible solutions which number of moves is below a given threshold. The board is then solved by increasing the threshold until at least one solution is found. \\
@@ -101,5 +102,7 @@ Also this improvement has not been implemented since the results collection phas
 
 
 \subsection{Reducing communication latencies}
+During its work cycle, each worker receive a job from the master, execute it and return the result back to the master. The problem is between two iteration: when the worker send back the result it must wait for another job from the master. During this gap no work is done, thus this is a possible performance loss. In order to reduce communication latencies, the next job should be sent before the worker complete the current one. In other words, at least one job should be always pending in the receive channel. This is relatively easy to implement, since it can be done by sending two messages to each worker in the first of the three sending phase. However, an unexpected performance loss has been detected. This happened due to the really small communication latencies in the cluster and the overhead caused by the higher load imbalance.
+
 
 \end{document}
