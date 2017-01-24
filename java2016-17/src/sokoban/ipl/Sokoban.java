@@ -30,8 +30,6 @@ public class Sokoban {
                     jobSubmitPortType, greetsPortType, resultsPortType);
             IbisIdentifier server = ibis.registry().elect("Server");
 
-            ibis.registry().waitUntilPoolClosed();
-
             if (server.equals(ibis.identifier())) {
                 Board board = null;
 
