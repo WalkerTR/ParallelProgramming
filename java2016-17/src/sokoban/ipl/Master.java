@@ -99,9 +99,11 @@ public class Master implements Runnable {
                             rmessage.finish();
                             responses++;
 
+                            Board b = it.next();
                             WriteMessage wmessage = pool.get(rmessage.origin().ibisIdentifier()).newMessage();
-                            wmessage.writeObject(it.next());
+                            wmessage.writeObject(b);
                             wmessage.finish();
+                            cache.put(b);
                         }
                         tc += System.currentTimeMillis();
 
@@ -142,6 +144,7 @@ public class Master implements Runnable {
                 System.err.println("C: " + tc);
                 System.err.println("D: " + td);
                 System.err.println("E: " + te);
+                System.err.println("Cache size: " + cache.size);
 
             }
 

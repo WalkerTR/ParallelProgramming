@@ -9,7 +9,7 @@ public class Sokoban {
 
     static PortType jobSubmitPortType = new PortType(PortType.COMMUNICATION_RELIABLE,
             PortType.SERIALIZATION_OBJECT, PortType.RECEIVE_EXPLICIT,
-            PortType.CONNECTION_ONE_TO_ONE, PortType.COMMUNICATION_FIFO);
+            PortType.CONNECTION_ONE_TO_ONE);
 
     static PortType resultsPortType = new PortType(PortType.COMMUNICATION_RELIABLE,
             PortType.SERIALIZATION_DATA, PortType.RECEIVE_EXPLICIT,
@@ -21,8 +21,7 @@ public class Sokoban {
 
     static IbisCapabilities ibisCapabilities = new IbisCapabilities(
             IbisCapabilities.ELECTIONS_STRICT,
-            IbisCapabilities.CLOSED_WORLD,
-            IbisCapabilities.TERMINATION);
+            IbisCapabilities.CLOSED_WORLD);
 
     public static void main(String[] args) {
         try {
