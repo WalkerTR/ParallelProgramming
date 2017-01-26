@@ -92,7 +92,7 @@ After the first performance measurement a superlinear speedup has been detected.
 \caption{Speedup - Standard version}
 \label{fig:speedupstandard}
 \end{figure}
-The measured speedup is shown in \autoref{fig:speedupstandard}, or better in \autoref{tab:standardtimes}. After a quick analysis it can be seen that the speedup is neither smooth and close to the perfect linear speedup. In order to understand the reasons of this slow down, the program has been modified to keep track of the execution times of all phases. Since the instructions for monitoring each phase introduce some overhead, they are enabled by the preprocessor only when the word \texttt{DEBUG} is defined. The results are summed up in \autoref{tab:timeperphasecomparison}. We can conclude that the performance loss is caused by the waiting time during the receive phase. Furthermore, the other phases are not communication bounded (the send are nonblocking) and perform computation on data. An attemp to reduce the time of the Receive phase is described in the paragraph \nameref{sec:overlappingcommcomp}.
+The measured speedup is shown in \autoref{fig:speedupstandard}, or better in \autoref{tab:standardtimes}. After a quick analysis it can be seen that the speedup is neither smooth and close to the perfect linear speedup. In order to understand the reasons of this slow down, the program has been modified to keep track of the execution times of all phases. Since the instructions for monitoring each phase introduce some overhead, they are enabled by the preprocessor only when the word \texttt{DEBUG} is defined. The average results are summed up in \autoref{tab:timeperphasecomparison}. We can conclude that the performance loss is caused by the waiting time during the receive phase, which is also the most variable. Furthermore, the other phases are pure computation (or memory copy) on data that scale linearly, hence they scale linearly. An attemp to reduce the time of the Receive phase is described in the paragraph \nameref{sec:overlappingcommcomp}.
 
 
 \begin{table}
@@ -101,7 +101,7 @@ The measured speedup is shown in \autoref{fig:speedupstandard}, or better in \au
 \hline
 & Size 1 & Size 2 & Size 3 \\
 \hline
-Boundaries copy & 0.58 (0.09\%) & 0.32 (0.03\%) & 0.39s (0.03\%) \\
+Boundaries copy & 0.56 (0.09\%) & 0.32 (0.03\%) & 0.39s (0.03\%) \\
 \hline
 Send & 2.52 (0.39\%) & 0.48 (0.06\%) & 0.41s (0.03\%) \\
 \hline
@@ -112,7 +112,7 @@ Update & 469.15 (73.36\%) & 501.71 (59.26\%) & 601.32s (47.88\%) \\
 Matrix copy & 144.65 (22.62\%) & 149.36 (17.64\%) & 177.17s (14.11\%) \\
 \hline
 \end{tabular}
-\caption{Time per phase comparison on 16 nodes} \label{tab:timeperphasecomparison}
+\caption{Execution time per phase on 16 nodes} \label{tab:timeperphasecomparison}
 \end{table}
 
 
@@ -125,7 +125,7 @@ We can modify the program in such a way that the matrix must fit in the sum of t
 
 
 \subsection{Overlapping communication and computation} \label{sec:overlappingcommcomp}
-In \autoref{tab:timeperphasecomparison} we showed that the receive phase is a bottleneck and the processes spend a noticeable time waiting for the messages. In order to reduce the latencies, we can overlap communication and computation. In fact, the vast majority of the matrix can be computed without the information collected by the receive. Therefore we can exploit the waiting time and compute the inner part of the matrix while messages are in transit. Only when the inner matrix has been computed \texttt{MPI\_Recv} is called to read incoming messages and process the boundary rows. The results are showed in \autoref{fig:speedupoptimized} and listed in \autoref{tab:optimizedtimes}. The performance gain is remarkable and the speedup is now smooth and almost perfect.
+In \autoref{tab:timeperphasecomparison} we showed that the receive phase is a bottleneck and the processes spend a noticeable time waiting for the messages. In order to reduce the latencies, we can overlap communication and computation. In fact, the vast majority of the matrix can be computed without the information collected by the receive. Therefore we can exploit the waiting time and compute the inner part of the matrix while messages are in transit. Only when the inner matrix has been computed \texttt{MPI\_Recv} is called to read incoming messages and process the boundary rows. The results are showed in \autoref{fig:speedupoptimized} and listed in \autoref{tab:optimizedtimes}. The performance gain is remarkable and the speedup is now smoother and almost perfect. Moreover, now different executions have really similar times.
 
 \begin{figure}
 \centering

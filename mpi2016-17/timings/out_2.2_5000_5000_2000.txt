@@ -1,0 +1,129 @@
+DAS4 JOBS EXECUTION WITH INPUT SIZE 5000 5000 2000
+
+
+
+### OUTPUT FROM SEQUENTIAL PROGRAM ###
+Reservation number 5584344: Reserved 1 hosts for 900 seconds 
+Run on 1 hosts for 960 seconds from Wed Jan 25 09:14:32 2017
+: node009/0 
+Number of live cells = 875078
+Game of Life took    655.697 seconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 1 NODES ###
+Reservation number 5584350: Reserved 1 hosts for 900 seconds 
+Run on 1 hosts for 960 seconds from Wed Jan 25 09:15:26 2017
+: node062/0 
+Number of live cells = 875078
+Game of Life took    658.581 seconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 2 NODES ###
+Reservation number 5584342: Reserved 2 hosts for 900 seconds 
+Run on 2 hosts for 960 seconds from Wed Jan 25 09:15:23 2017
+: node004/0 node036/0 
+Number of live cells = 875078
+Game of Life took    334.143 seconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 3 NODES ###
+Reservation number 5584348: Reserved 3 hosts for 900 seconds 
+Run on 3 hosts for 960 seconds from Wed Jan 25 09:16:55 2017
+: node011/0 node063/0 node068/0 
+Number of live cells = 875078
+Game of Life took    221.477 seconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 4 NODES ###
+Reservation number 5584347: Reserved 4 hosts for 900 seconds 
+Run on 4 hosts for 960 seconds from Wed Jan 25 09:17:49 2017
+: node027/0 node005/0 node007/0 node042/0 
+Number of live cells = 875078
+Game of Life took    167.171 seconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 5 NODES ###
+Reservation number 5584345: Reserved 5 hosts for 900 seconds 
+Run on 5 hosts for 960 seconds from Wed Jan 25 09:17:24 2017
+: node053/0 node018/0 node017/0 node021/0 node003/0 
+Number of live cells = 875078
+Game of Life took    135.064 seconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 6 NODES ###
+Reservation number 5584343: Reserved 6 hosts for 900 seconds 
+Run on 6 hosts for 960 seconds from Wed Jan 25 09:16:27 2017
+: node067/0 node030/0 node044/0 node025/0 node010/0 node024/0 
+Number of live cells = 875078
+Game of Life took    110.810 seconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 7 NODES ###
+Reservation number 5584346: Reserved 7 hosts for 900 seconds 
+Run on 7 hosts for 960 seconds from Wed Jan 25 09:17:24 2017
+: node028/0 node020/0 node037/0 node056/0 node054/0 node022/0 node059/0 
+Number of live cells = 875078
+Game of Life took     95.613 seconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 8 NODES ###
+Reservation number 5584351: Reserved 8 hosts for 900 seconds 
+Run on 8 hosts for 960 seconds from Wed Jan 25 09:16:55 2017
+: node065/0 node043/0 node064/0 node029/0 node061/0 node047/0 node023/0 node046/0 
+Number of live cells = 875078
+Game of Life took     83.502 seconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 9 NODES ###
+Reservation number 5584354: Reserved 9 hosts for 900 seconds 
+Run on 9 hosts for 960 seconds from Wed Jan 25 09:16:27 2017
+: node027/0 node005/0 node007/0 node042/0 node033/0 node026/0 node045/0 node048/0 node012/0 
+Number of live cells = 875078
+Game of Life took     74.240 seconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 10 NODES ###
+Reservation number 5584353: Reserved 10 hosts for 900 seconds 
+Run on 10 hosts for 960 seconds from Wed Jan 25 09:14:31 2017
+: node043/0 node064/0 node029/0 node061/0 node047/0 node023/0 node046/0 node011/0 node063/0 node068/0 
+Number of live cells = 875078
+Game of Life took     66.705 seconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 11 NODES ###
+Reservation number 5584357: Reserved 11 hosts for 900 seconds 
+Run on 11 hosts for 960 seconds from Wed Jan 25 09:15:46 2017
+: node065/0 node043/0 node064/0 node029/0 node061/0 node047/0 node023/0 node046/0 node011/0 node063/0 node068/0 
+Number of live cells = 875078
+Game of Life took     60.617 seconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 12 NODES ###
+Reservation number 5584349: Reserved 12 hosts for 900 seconds 
+Run on 12 hosts for 960 seconds from Wed Jan 25 09:16:20 2017
+: node028/0 node020/0 node037/0 node056/0 node054/0 node022/0 node059/0 node053/0 node018/0 node017/0 node021/0 node003/0 
+Number of live cells = 875078
+Game of Life took     55.609 seconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 13 NODES ###
+Reservation number 5584356: Reserved 13 hosts for 900 seconds 
+Run on 13 hosts for 960 seconds from Wed Jan 25 09:15:26 2017
+: node007/0 node042/0 node033/0 node026/0 node045/0 node048/0 node012/0 node067/0 node030/0 node044/0 node025/0 node010/0 node024/0 
+Number of live cells = 875078
+Game of Life took     51.144 seconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 14 NODES ###
+Reservation number 5584358: Reserved 14 hosts for 900 seconds 
+Run on 14 hosts for 960 seconds from Wed Jan 25 09:15:23 2017
+: node028/0 node020/0 node037/0 node056/0 node054/0 node022/0 node059/0 node053/0 node018/0 node017/0 node021/0 node003/0 node027/0 node005/0 
+Number of live cells = 875078
+Game of Life took     47.477 seconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 15 NODES ###
+Reservation number 5584355: Reserved 15 hosts for 900 seconds 
+Run on 15 hosts for 960 seconds from Wed Jan 25 09:14:31 2017
+: node007/0 node042/0 node033/0 node026/0 node045/0 node048/0 node012/0 node067/0 node030/0 node044/0 node025/0 node010/0 node024/0 node062/0 node065/0 
+Number of live cells = 875078
+Game of Life took     44.055 seconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 16 NODES ###
+Reservation number 5584352: Reserved 16 hosts for 900 seconds 
+Run on 16 hosts for 960 seconds from Wed Jan 25 09:14:31 2017
+: node028/0 node020/0 node037/0 node056/0 node054/0 node022/0 node059/0 node053/0 node018/0 node017/0 node021/0 node003/0 node027/0 node005/0 node004/0 node036/0 
+Number of live cells = 875078
+Game of Life took     41.470 seconds
+
+
+
+
+
+
+

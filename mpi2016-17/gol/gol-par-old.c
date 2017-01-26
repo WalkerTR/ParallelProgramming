@@ -8,11 +8,11 @@ Conway Game of Life
 #include <stdlib.h>
 #include <sys/time.h>
 #include <mpi.h>
+#include <string.h>
 //#define DEBUG
 
 int bwidth, bheight, nsteps;
 int numprocs, rank, numrows;
-int buffer_size;
 int **buffer;
 int i, j, n, im, ip, jm, jp, ni, nj, nsum, isum, gisum;
 int **old, **new;

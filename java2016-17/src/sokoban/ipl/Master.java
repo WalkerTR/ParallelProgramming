@@ -68,8 +68,9 @@ public class Master implements Runnable {
                     Board init = cache.get(board);
                     boards.add(init);
                     init.setBound(bound);
+                    int i;
                     //ta -= System.currentTimeMillis();
-                    for (int i = 0; i < bound && boards.size() < MINJOBS; i++) {
+                    for (i = 0; i < bound && boards.size() < MINJOBS; i++) {
                         List<Board> newBoards = new ArrayList<>();
                         for (Board b : boards) {
                             newBoards.addAll(b.generateChildren(cache));
@@ -78,7 +79,7 @@ public class Master implements Runnable {
                         boards = newBoards;
                     }
                     //ta += System.currentTimeMillis();
-                    if (boards.size() >= MINJOBS) {
+                    if (i < bound) {
                         Iterator<Board> it = boards.iterator();
                         int responses = 0;
 

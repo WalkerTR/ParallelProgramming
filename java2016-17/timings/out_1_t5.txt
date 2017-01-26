@@ -1,0 +1,299 @@
+DAS4 JOBS EXECUTION WITH INPUT SIZE t5
+
+
+
+### OUTPUT FROM SEQUENTIAL PROGRAM ###
+Reservation number 5586153: Reserved 1 hosts for 900 seconds 
+Run on 1 hosts for 960 seconds from Thu Jan 26 14:55:13 2017
+: node006/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 203529 milliseconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 1 NODES ###
+Reservation number 5586159: Reserved 1 hosts for 900 seconds 
+Run on 1 hosts for 960 seconds from Thu Jan 26 14:58:43 2017
+: node005/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 180378 milliseconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 2 NODES ###
+Reservation number 5586161: Reserved 2 hosts for 900 seconds 
+Run on 2 hosts for 960 seconds from Thu Jan 26 15:01:50 2017
+: node007/0 node019/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 104885 milliseconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 3 NODES ###
+Reservation number 5586163: Reserved 3 hosts for 900 seconds 
+Run on 3 hosts for 960 seconds from Thu Jan 26 15:03:42 2017
+: node018/0 node027/0 node020/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 68600 milliseconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 4 NODES ###
+Reservation number 5586165: Reserved 4 hosts for 900 seconds 
+Run on 4 hosts for 960 seconds from Thu Jan 26 15:04:58 2017
+: node022/0 node042/0 node049/0 node055/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 52207 milliseconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 5 NODES ###
+Reservation number 5586167: Reserved 5 hosts for 900 seconds 
+Run on 5 hosts for 960 seconds from Thu Jan 26 15:05:57 2017
+: node059/0 node041/0 node031/0 node004/0 node002/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 42280 milliseconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 6 NODES ###
+Reservation number 5586169: Reserved 6 hosts for 900 seconds 
+Run on 6 hosts for 960 seconds from Thu Jan 26 15:06:46 2017
+: node013/0 node034/0 node038/0 node021/0 node008/0 node028/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 35638 milliseconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 7 NODES ###
+Reservation number 5586171: Reserved 7 hosts for 900 seconds 
+Run on 7 hosts for 960 seconds from Thu Jan 26 15:07:29 2017
+: node017/0 node003/0 node053/0 node035/0 node069/0 node040/0 node060/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 33738 milliseconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 8 NODES ###
+Reservation number 5586173: Reserved 8 hosts for 900 seconds 
+Run on 8 hosts for 960 seconds from Thu Jan 26 15:08:10 2017
+: node036/0 node016/0 node006/0 node033/0 node054/0 node005/0 node056/0 node007/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 27932 milliseconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 9 NODES ###
+Reservation number 5586175: Reserved 9 hosts for 900 seconds 
+Run on 9 hosts for 960 seconds from Thu Jan 26 15:08:45 2017
+: node051/0 node052/0 node018/0 node027/0 node020/0 node050/0 node022/0 node042/0 node049/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 23942 milliseconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 10 NODES ###
+Reservation number 5586177: Reserved 10 hosts for 900 seconds 
+Run on 10 hosts for 960 seconds from Thu Jan 26 15:09:16 2017
+: node037/0 node059/0 node041/0 node031/0 node004/0 node002/0 node015/0 node013/0 node034/0 node038/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 22006 milliseconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 11 NODES ###
+Reservation number 5586180: Reserved 11 hosts for 900 seconds 
+Run on 11 hosts for 960 seconds from Thu Jan 26 15:09:45 2017
+: node008/0 node028/0 node014/0 node017/0 node003/0 node053/0 node035/0 node069/0 node040/0 node060/0 node070/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 20832 milliseconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 12 NODES ###
+Reservation number 5586182: Reserved 12 hosts for 900 seconds 
+Run on 12 hosts for 960 seconds from Thu Jan 26 15:10:13 2017
+: node006/0 node033/0 node054/0 node005/0 node056/0 node007/0 node019/0 node051/0 node052/0 node018/0 node027/0 node020/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 19731 milliseconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 13 NODES ###
+Reservation number 5586185: Reserved 13 hosts for 900 seconds 
+Run on 13 hosts for 960 seconds from Thu Jan 26 15:10:40 2017
+: node042/0 node049/0 node055/0 node037/0 node059/0 node041/0 node031/0 node004/0 node002/0 node015/0 node013/0 node034/0 node038/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 16843 milliseconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 14 NODES ###
+Reservation number 5586188: Reserved 14 hosts for 900 seconds 
+Run on 14 hosts for 960 seconds from Thu Jan 26 15:11:04 2017
+: node008/0 node028/0 node014/0 node017/0 node003/0 node053/0 node035/0 node069/0 node040/0 node060/0 node070/0 node016/0 node050/0 node006/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 16273 milliseconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 15 NODES ###
+Reservation number 5586190: Reserved 15 hosts for 900 seconds 
+Run on 15 hosts for 960 seconds from Thu Jan 26 15:11:28 2017
+: node054/0 node005/0 node056/0 node007/0 node019/0 node051/0 node052/0 node018/0 node027/0 node020/0 node022/0 node042/0 node049/0 node055/0 node037/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 15696 milliseconds
+
+### OUTPUT FROM PARALLEL PROGRAM ON 16 NODES ###
+Reservation number 5586192: Reserved 16 hosts for 900 seconds 
+Run on 16 hosts for 960 seconds from Thu Jan 26 15:11:51 2017
+: node041/0 node031/0 node004/0 node002/0 node015/0 node013/0 node034/0 node038/0 node036/0 node021/0 node008/0 node028/0 node014/0 node017/0 node003/0 node053/0 
+Running Sokoban, initial board:
+###########
+###      ##
+##       ##
+#   $$    #
+#$  @ #####
+#  ########
+###########
+
+Bound now: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Solving game possible in 8 ways of 17 steps
+Sokoban took 13675 milliseconds
+
+
+
+
+
+
+
