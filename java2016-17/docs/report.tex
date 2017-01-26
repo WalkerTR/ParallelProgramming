@@ -27,11 +27,11 @@
 \maketitle
 
 \section{Introduction}
-The Sokoban is a puzzle game, where according the rules the player can move his position inside the board until a particular condition is met. The given sequential algorithm explore the solutions space until a combination of moves bring the initial state to a final state. Since the solutions space is infinite, the game il solved by gradually increasing the maximum number of moves that the player can do. This means that the states are examined more the once during the resolution. In this report a solution to parallelize the sequential program will be provided, with the main aim of describing the techniques used and measuring the performance increasement.
+The Sokoban is a puzzle game where, according to some rules, the player can move his position within the board until a particular condition is met. The resolution of the game has exponential complexity, since for each state the player can move in four different directions, hence the resolution require a huge computational power. Nowadays cluster are widely used to solve complex problems, but the program must be modifiet in order to run on a cluster. In this report we will provide a possible parallelization of the game, with the main aim of describing the techniques used and measuring the performance gain.
 
 \section{Parallel algorithm}
-The provided sequential program uses a recursive function to compute all possible solutions which number of moves is below a given threshold. The board is then solved by increasing the threshold until at least one solution is found. \\
-Two possible families of parallel algorithms to solve sokoban are:
+The provided sequential program uses a recursive function to search the solution among all the possible combinations of moves. Since the research space is infinite, it is bound by a maximum number of moves, which is gradually increased until a solution is found. It follows that the states are examined many times during the resolution. \\
+There are two possible families of parallel algorithms to solve sokoban are:
 \begin{itemize}
     \item A \textit{Master Worker} algorithm, where a master node creates jobs that are solved by an arbitrary number of workers.
     \item A \textit{Trasposition-Driven Scheduling} algorithm, where each node computes one move and distribute the resulting states among all the nodes according to a hash function.

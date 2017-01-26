@@ -10,7 +10,7 @@ import java.util.List;
 
 public class Master implements Runnable {
 
-    private static final int MAXHOPS = 9;
+    private static final int MINJOBS = 1000;
     private static BoardCache cache = new BoardCache();
 
     private Ibis ibis;
@@ -69,7 +69,7 @@ public class Master implements Runnable {
                     boards.add(init);
                     init.setBound(bound);
                     //ta -= System.currentTimeMillis();
-                    for (int i = 0; i < bound && i < MAXHOPS; i++) {
+                    for (int i = 0; i < bound && boards.size() < MINJOBS; i++) {
                         List<Board> newBoards = new ArrayList<>();
                         for (Board b : boards) {
                             newBoards.addAll(b.generateChildren(cache));
@@ -78,7 +78,7 @@ public class Master implements Runnable {
                         boards = newBoards;
                     }
                     //ta += System.currentTimeMillis();
-                    if (bound > MAXHOPS) {
+                    if (boards.size() >= MINJOBS) {
                         Iterator<Board> it = boards.iterator();
                         int responses = 0;
 
