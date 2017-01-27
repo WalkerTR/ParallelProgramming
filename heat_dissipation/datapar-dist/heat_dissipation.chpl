@@ -26,6 +26,7 @@ readpgm(C, N, M, {1..N, 1..M}, tcond, 0.0, 1.0);
 proc do_compute() {
   const BigD = {0..N+1, 0..M+1} dmapped Block(boundingBox={0..N+1, 0..M+1});
   const D: subdomain(BigD) = {1..N, 1..M};
+  const COL: subdomain(BigD) = D.exterior(0,-1);
 
   const directWeight: real = (sqrt(2) / (sqrt(2) + 1)) / 4;
   const diagonalWeight: real = (1 / (sqrt(2) + 1)) / 4;
@@ -36,7 +37,6 @@ proc do_compute() {
   var t: Timer;
   var it: int;
   var e: real;
-  var t1, t2, t3, t4: Timer;
 
   A[D] = tinit;
   Cond[D] = tcond;
@@ -44,21 +44,18 @@ proc do_compute() {
   A[D.exterior(-1,0)] = A[D.interior(-1,0)];
   A[D.exterior(1,0)] = A[D.interior(1,0)];
 
+  A[0, 0] = A[0, M];
+  A[N+1, 0] = A[N+1, M];
+  A[0, M+1] = A[0, 1];
+  A[N+1, M+1] = A[N+1, 1];
 
   t.start();
   do {
-
-    t1.start();
-    forall (i, j) in BigD {
-      if (j == 0) {
-         A[i, 0] = A[i, M];
-      } else if (j == M+1) {
-         A[i, M+1] = A[i, 1];
-      }
+    forall (i, j) in COL {
+      A[i, 0] = A[i, M];
+      A[i, M+1] = A[i, 1];
     }
-    t1.stop();
 
-    t2.start();
     forall (i, j) in D {
       Temp[i, j] = Cond[i, j] * A[i, j]
                 + (1 - Cond[i, j]) * (
@@ -73,20 +70,15 @@ proc do_compute() {
                                       A[i+1, j])
                 );
     }
-    t2.stop();
 
     it = it + 1;
-    
-    t3.start();
+
     forall idx in D do ABS[idx] = abs(A[idx] - Temp[idx]);
     e = max reduce ABS;
-    t3.stop();
 
-    t4.start();
     forall idx in D {
       A[idx] = Temp[idx];
     }
-    t4.stop();
 
   } while(it < I && e > E);
   t.stop();

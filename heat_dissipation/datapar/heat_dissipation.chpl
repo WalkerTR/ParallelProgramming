@@ -29,9 +29,6 @@ proc do_compute() {
   const directWeight: real = (sqrt(2) / (sqrt(2) + 1)) / 4;
   const diagonalWeight: real = (1 / (sqrt(2) + 1)) / 4;
 
-
-
-
   var A, Temp, Cond: [BigD] real;
   var r: results;
   var t: Timer;
@@ -41,15 +38,18 @@ proc do_compute() {
   A[D] = tinit;
   Cond[D] = tcond;
 
-
   A[D.exterior(-1,0)] = A[D.interior(-1,0)];
   A[D.exterior(1,0)] = A[D.interior(1,0)];
 
+  A[0, 0] = A[0, M];
+  A[N+1, 0] = A[N+1, M];
+  A[0, M+1] = A[0, 1];
+  A[N+1, M+1] = A[N+1, 1];
 
   t.start();
   do {
 
-    forall i in 0..N+1 {
+    forall i in 1..N {
       A[i, 0] = A[i, M];
       A[i, M+1] = A[i, 1];
     }
