@@ -27,6 +27,7 @@ public class Sokoban {
         try {
             Ibis ibis = IbisFactory.createIbis(ibisCapabilities, null,
                     jobSubmitPortType, greetsPortType, resultsPortType);
+
             IbisIdentifier server = ibis.registry().elect("Server");
 
             if (server.equals(ibis.identifier())) {
