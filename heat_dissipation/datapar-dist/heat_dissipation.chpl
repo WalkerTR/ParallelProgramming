@@ -30,18 +30,16 @@ proc do_compute() {
   const directWeight: real = (sqrt(2) / (sqrt(2) + 1)) / 4;
   const diagonalWeight: real = (1 / (sqrt(2) + 1)) / 4;
 
-
-
-
   var A, Temp, Cond: [BigD] real;
+  var ABS: [D] real;
   var r: results;
   var t: Timer;
   var it: int;
   var e: real;
+  var t1, t2, t3, t4: Timer;
 
   A[D] = tinit;
   Cond[D] = tcond;
-
 
   A[D.exterior(-1,0)] = A[D.interior(-1,0)];
   A[D.exterior(1,0)] = A[D.interior(1,0)];
@@ -50,11 +48,17 @@ proc do_compute() {
   t.start();
   do {
 
-    forall i in 0..N+1 {
-      A[i, 0] = A[i, M];
-      A[i, M+1] = A[i, 1];
+    t1.start();
+    forall (i, j) in BigD {
+      if (j == 0) {
+         A[i, 0] = A[i, M];
+      } else if (j == M+1) {
+         A[i, M+1] = A[i, 1];
+      }
     }
+    t1.stop();
 
+    t2.start();
     forall (i, j) in D {
       Temp[i, j] = Cond[i, j] * A[i, j]
                 + (1 - Cond[i, j]) * (
@@ -69,15 +73,21 @@ proc do_compute() {
                                       A[i+1, j])
                 );
     }
+    t2.stop();
 
     it = it + 1;
-    e = 0;
-    for idx in D {
-      if abs(A[idx] - Temp[idx]) > e {
-        e = A[idx] - Temp[idx];
-      }
+    
+    t3.start();
+    forall idx in D do ABS[idx] = abs(A[idx] - Temp[idx]);
+    e = max reduce ABS;
+    t3.stop();
+
+    t4.start();
+    forall idx in D {
       A[idx] = Temp[idx];
     }
+    t4.stop();
+
   } while(it < I && e > E);
   t.stop();
 
