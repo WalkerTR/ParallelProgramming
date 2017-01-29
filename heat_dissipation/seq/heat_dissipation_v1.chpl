@@ -74,7 +74,7 @@ proc do_compute() {
     e = 0;
     for idx in D {
       if abs(A[idx] - Temp[idx]) > e {
-        e = A[idx] - Temp[idx];
+        e = abs(A[idx] - Temp[idx]);
       }
     }
     A[D] = Temp[D];

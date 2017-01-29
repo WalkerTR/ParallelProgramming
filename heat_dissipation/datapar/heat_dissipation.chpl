@@ -29,63 +29,91 @@ proc do_compute() {
   const directWeight: real = (sqrt(2) / (sqrt(2) + 1)) / 4;
   const diagonalWeight: real = (1 / (sqrt(2) + 1)) / 4;
 
-  var A, Temp, Cond: [BigD] real;
+  var M1, M2: [BigD] real;
+  var ABS, Cond: [D] real;
   var r: results;
   var t: Timer;
   var it: int;
   var e: real;
 
-  A[D] = tinit;
+  M1[D] = tinit;
   Cond[D] = tcond;
 
-  A[D.exterior(-1,0)] = A[D.interior(-1,0)];
-  A[D.exterior(1,0)] = A[D.interior(1,0)];
+  M1[D.exterior(-1,0)] = M1[D.interior(-1,0)];
+  M1[D.exterior(1,0)] = M1[D.interior(1,0)];
 
-  A[0, 0] = A[0, M];
-  A[N+1, 0] = A[N+1, M];
-  A[0, M+1] = A[0, 1];
-  A[N+1, M+1] = A[N+1, 1];
+  M1[0, 0] = M1[0, M];
+  M1[N+1, 0] = M1[N+1, M];
+  M1[0, M+1] = M1[0, 1];
+  M1[N+1, M+1] = M1[N+1, 1];
+
+  M2[BigD.interior(-1,0)] = M1[BigD.interior(-1,0)];
+  M2[BigD.interior(1,0)] = M1[BigD.interior(1,0)];
 
   t.start();
   do {
 
-    forall i in 1..N {
-      A[i, 0] = A[i, M];
-      A[i, M+1] = A[i, 1];
-    }
+    if (it % 2 == 0) {
+      forall i in 1..N {
+        M1[i, 0] = M1[i, M];
+        M1[i, M+1] = M1[i, 1];
+      }
 
-    forall (i, j) in D {
-      Temp[i, j] = Cond[i, j] * A[i, j]
-                + (1 - Cond[i, j]) * (
-                      diagonalWeight * (A[i-1, j-1] +
-                                        A[i-1, j+1] +
-                                        A[i+1, j-1] +
-                                        A[i+1, j+1])
-                      +
-                      directWeight * (A[i-1, j] +
-                                      A[i, j-1] +
-                                      A[i, j+1] +
-                                      A[i+1, j])
-                );
+      forall (i, j) in D {
+        M2[i, j] = Cond[i, j] * M1[i, j]
+                  + (1 - Cond[i, j]) * (
+                        diagonalWeight * (M1[i-1, j-1] +
+                                          M1[i-1, j+1] +
+                                          M1[i+1, j-1] +
+                                          M1[i+1, j+1])
+                        +
+                        directWeight * (M1[i-1, j] +
+                                        M1[i, j-1] +
+                                        M1[i, j+1] +
+                                        M1[i+1, j])
+                  );
+      }
+    } else {
+      forall i in 1..N {
+        M2[i, 0] = M2[i, M];
+        M2[i, M+1] = M2[i, 1];
+      }
+      
+      forall (i, j) in D {
+        M1[i, j] = Cond[i, j] * M2[i, j]
+                  + (1 - Cond[i, j]) * (
+                        diagonalWeight * (M2[i-1, j-1] +
+                                          M2[i-1, j+1] +
+                                          M2[i+1, j-1] +
+                                          M2[i+1, j+1])
+                        +
+                        directWeight * (M2[i-1, j] +
+                                        M2[i, j-1] +
+                                        M2[i, j+1] +
+                                        M2[i+1, j])
+                  );
+      }
     }
 
     it = it + 1;
-    e = 0;
-    for idx in D {
-      if abs(A[idx] - Temp[idx]) > e {
-        e = abs(A[idx] - Temp[idx]);
-      }
-      A[idx] = Temp[idx];
-    }
+    forall idx in D do ABS[idx] = abs(M1[idx] - M2[idx]);
+    e = max reduce ABS;
   } while(it < I && e > E);
   t.stop();
 
-  r.tmin = min reduce A[D];
-  r.tmax = max reduce A[D];
   r.maxdiff = e;
   r.niter = it;
-  r.tavg = + reduce A[D] / D.size;
   r.time = t.elapsed();
+
+  if (it % 2 == 0) {
+    r.tmin = min reduce M1[D];
+    r.tmax = max reduce M1[D];
+    r.tavg = + reduce M1[D] / D.size;
+  } else {
+    r.tmin = min reduce M2[D];
+    r.tmax = max reduce M2[D];
+    r.tavg = + reduce M2[D] / D.size;
+  }
 
   return r;
 }
