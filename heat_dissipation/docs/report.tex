@@ -112,14 +112,12 @@ While inspecting the conductivity pattern we noticed that many cell have value 6
 
 \subsection{Avoiding delta calculation}
 The convergence criterion states that, when for each cell the difference between the old value and the new computed one is below a given threshold, the algorithm terminates. In order to that, in each iteration the maximum difference for each cell is calculated and it is compared with the threshold. Though it is correct, this is not the optimal solution since it compute a lot of unnecessary information. In fact, we don't really need to know if the maximum value is below the threshold, but what we need is to know if there is at least one difference above the threshold. Introducing this little change, we don't need to explore the entire matrix but only on part of it. During the first iterations it is likely that most cells have a difference above the threshold, hence only a minimal part of the matrix must be examined. \\
-However in all the three versions this improvement didn't lead to a performance gain (sequential one) or introduced a performance loss (parallel and distributed ones). This is a really weird behaviour ***************************************.
+However in all the three versions this improvement didn't lead to a performance gain (sequential one) or introduced a performance loss (parallel and distributed ones). This is a really weird behaviour.
 
-\subsection{Overlapping communication and computation}
-In the multi locale version a considerable amount of time is wasted due to communication latencies. A common practice to reduce communication overhead is overlapping communication and computation, in this way during the communication the computational power can be used to compute something else. \\
-We use \texttt{cobegin} to start three different task at the same time, which are:
-\begin{itemize}
-    \item The main task perform the update in the inner matrix, which does not require communication.
+\subsection{Stencil distribution}
 
-\end{itemize}
+\subsection{Row partitioning}
+
+\subsection{Keyword local}
 
 \end{document}

@@ -32,7 +32,7 @@ proc do_compute() {
   const diagonalWeight: real = (1 / (sqrt(2) + 1)) / 4;
 
   var M1, M2: [BigD] real;
-  var ABS, Cond: [D] real;
+  var Cond: [D] real;
   var r: results;
   var t: Timer;
   var it: int;
@@ -120,8 +120,9 @@ proc do_compute() {
     }
 
     it = it + 1;
-    e = false;
+
     t3.start();
+    e = false;
     for i in D {
       if (abs(M1[i] - M2[i]) > E) {
         e = true;

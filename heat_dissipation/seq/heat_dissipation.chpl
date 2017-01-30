@@ -34,7 +34,7 @@ proc do_compute() {
   var r: results;
   var t: Timer;
   var it: int;
-  var e: real;
+  var e: bool;
 
   M1[D] = tinit;
   Cond[D] = tcond;
@@ -96,16 +96,17 @@ proc do_compute() {
     }
 
     it = it + 1;
-    e = 0;
-    for idx in D {
-      if (abs(M1[idx] - M2[idx]) > e) {
-        e = abs(M1[idx] - M2[idx]);
+    e = false;
+    for i in D {
+      if (abs(M1[i] - M2[i]) > E) {
+        e = true;
+        break;
       }
     }
-  } while(it < I && e > E);
+  } while(it < I && isTrue(e));
   t.stop();
 
-  r.maxdiff = e;
+  r.maxdiff = max reduce abs(M1[D] - M2[D]);
   r.niter = it;
   r.time = t.elapsed();
 
