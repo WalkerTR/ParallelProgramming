@@ -94,20 +94,32 @@ Matrix copy & 144.65 (22.62\%) & 149.36 (17.64\%) & 177.17s (14.11\%) \\
 \caption{Execution time per phase} \label{tab:timeperphasecomparison}
 \end{table}
 
-In order to improve the program, we need more accurate metrics. In particular, we should try to improve specific phases of the program, merge different phases or delete needlese phases. We will describe the successifull and unsuccessifull attemps to improve the program in the next paragraphs.
+In order to improve the program, we need more accurate metrics. In particular, we should try to improve specific phases of the program, merge different phases or delete needlese phases. We will describe the successfull and unsuccessfull attemps to improve the program in the next paragraphs.
 
 \subsection{High level operations}
 One of the main cause of the bad performance are the high level operations, that is, aritmetic operations or assignments on complex data structures (arrays). We noticed that, when iterating on the data using a \texttt{for} or better a \texttt{forall} loop and executing the operation on each element, the time required is much less. This is really weid behaviour of the compiler, since the higher level instruction could be just syntactic sugar. It is likely that the compiler fails some assumption on the domain and/or on the presence of side effects, but the measured slow down is really unbelievable. Therefore, after removing all the operations on arrays, the program had a considerable performance gain.
 
 \subsection{Grouping operations}
-
-
-\subsection{Avoiding needless computation}
+The sequential program reads the entire matrix three times per iteration: first to update each cell, then to compute the maximum delta and finally to copy the temporary matrix into the standard one. While the first scan is not compatible with the third one, the first one and the second one can be grouped as well as the second one and the third one. This allow to iterate over the matrix only twice, saving a noticeable amount of time. We chose to group the last two iteration, that is, the calculation of the delta and che copy of the matrix. \\
+Note that this improvement is not applicable to the parallel and distributed program since they calculate the delta using the builtin parallel \texttt{reduce} function, which is much faster.
 
 \subsection{Avoiding matrix copy}
+In \autoref{tab:timeperphasecomparison} we showed the duration of each phase of the program. Using the first two improvements, the program had a pretty big performance gain. However there is still needless work performed during the iteration. In fact, at the end of iteration the temporary matrix is copied in the regular one and this waste a lot of time. We can easily avoid the need of the copy by alternately the regular matrix and the temp matrix. In other words, given two matrix $M1$ and $M2$, in even iterations $M1$ works as regular matrix and $M2$ as temporary matrix while in odd iterations $M2$ works as regular matrix and $M1$ as temporary matrix. \\
+More attention must be paid at the end of the program: the result will be in one of the two matrix according to the number of iteration.
+
+\subsection{Avoiding needless computation}
+While inspecting the conductivity pattern we noticed that many cell have value 65535, that is, the conductivity index is null. When there is no conductivity, the value of the cell remains constant over the time domain, therefore after updating the cell the value will be the same. We can exploit the conductivity index to compute a cell only when needed, avoiding useless computation, memory access and, for the multi locale version, communication.
 
 \subsection{Avoiding delta calculation}
+The convergence criterion states that, when for each cell the difference between the old value and the new computed one is below a given threshold, the algorithm terminates. In order to that, in each iteration the maximum difference for each cell is calculated and it is compared with the threshold. Though it is correct, this is not the optimal solution since it compute a lot of unnecessary information. In fact, we don't really need to know if the maximum value is below the threshold, but what we need is to know if there is at least one difference above the threshold. Introducing this little change, we don't need to explore the entire matrix but only on part of it. During the first iterations it is likely that most cells have a difference above the threshold, hence only a minimal part of the matrix must be examined. \\
+However in all the three versions this improvement didn't lead to a performance gain (sequential one) or introduced a performance loss (parallel and distributed ones). This is a really weird behaviour ***************************************.
 
 \subsection{Overlapping communication and computation}
+In the multi locale version a considerable amount of time is wasted due to communication latencies. A common practice to reduce communication overhead is overlapping communication and computation, in this way during the communication the computational power can be used to compute something else. \\
+We use \texttt{cobegin} to start three different task at the same time, which are:
+\begin{itemize}
+    \item The main task perform the update in the inner matrix, which does not require communication.
+
+\end{itemize}
 
 \end{document}

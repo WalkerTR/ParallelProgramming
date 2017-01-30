@@ -98,7 +98,7 @@ proc do_compute() {
     it = it + 1;
     e = 0;
     for idx in D {
-      if abs(M1[idx] - M2[idx]) > e {
+      if (abs(M1[idx] - M2[idx]) > e) {
         e = abs(M1[idx] - M2[idx]);
       }
     }

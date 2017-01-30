@@ -36,7 +36,7 @@ proc do_compute() {
   var r: results;
   var t: Timer;
   var it: int;
-  var e: bool;
+  var exit: bool = false;
   var t1, t2, t3, t4: Timer;
 
   M1[D] = tinit;
@@ -120,10 +120,10 @@ proc do_compute() {
     }
 
     it = it + 1;
-    e = false;
+
     t3.start();
-    for i in D {
-      if (abs(M1[i] - M2[i]) > E) {
+    for idx in D {
+      if (abs(M1[idx] - M2[idx] > E)) {
         e = true;
         break;
       }
@@ -131,7 +131,7 @@ proc do_compute() {
     t3.stop();
 
 
-  } while(it < I && isTrue(e));
+  } while(it < I && !e);
   t.stop();
 
   writeln(t1.elapsed());
