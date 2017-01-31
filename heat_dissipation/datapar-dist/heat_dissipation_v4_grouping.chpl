@@ -1,6 +1,6 @@
 use util;
 use Time;
-use StencilDist;
+use BlockDist;
 
 config const N = 150;
 config const M = 100;
@@ -24,12 +24,10 @@ const tcond: [1..N, 1..M] real;
 readpgm(C, N, M, {1..N, 1..M}, tcond, 0.0, 1.0);
 
 proc do_compute() {
-  const BigD = {0..N+1, 0..M+1} dmapped Stencil(boundingBox={0..N+1, 0..M+1},
-                                                fluff=(1,1),
-                                                targetLocales=reshape(Locales, {0..#numLocales,1..1}));
+  const BigD = {0..N+1, 0..M+1} dmapped Block(boundingBox={0..N+1, 0..M+1});
   const D: subdomain(BigD) = {1..N, 1..M};
   const COL: subdomain(BigD) = D.exterior(0,-1);
-  
+
   const directWeight: real = (sqrt(2) / (sqrt(2) + 1)) / 4;
   const diagonalWeight: real = (1 / (sqrt(2) + 1)) / 4;
 
@@ -62,15 +60,12 @@ proc do_compute() {
   do {
     if (it % 2 == 0) {
       // copy of left-right columns
-      local forall (i, j) in COL {
+      forall (i, j) in COL {
         M1[i, 0] = M1[i, M];
         M1[i, M+1] = M1[i, 1];
       }
 
-      // updating read-only cache
-      M1.updateFluff();
-
-      local forall (i, j) in D {
+      forall (i, j) in D {
         // computing new values
         M2[i, j] = Cond[i, j] * M1[i, j]
                   + (1 - Cond[i, j]) * (
@@ -89,15 +84,12 @@ proc do_compute() {
       }
     } else {
       // copy of left-right columns
-      local forall (i, j) in COL {
+      forall (i, j) in COL {
         M2[i, 0] = M2[i, M];
         M2[i, M+1] = M2[i, 1];
       }
 
-      // updating read-only cache
-      M2.updateFluff();
-
-      local forall (i, j) in D {
+      forall (i, j) in D {
         // computing new values
         M1[i, j] = Cond[i, j] * M2[i, j]
                   + (1 - Cond[i, j]) * (

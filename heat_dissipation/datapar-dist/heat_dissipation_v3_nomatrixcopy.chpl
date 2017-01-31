@@ -1,6 +1,6 @@
 use util;
 use Time;
-use StencilDist;
+use BlockDist;
 
 config const N = 150;
 config const M = 100;
@@ -24,9 +24,7 @@ const tcond: [1..N, 1..M] real;
 readpgm(C, N, M, {1..N, 1..M}, tcond, 0.0, 1.0);
 
 proc do_compute() {
-  const BigD = {0..N+1, 0..M+1} dmapped Stencil(boundingBox={0..N+1, 0..M+1},
-                                                fluff=(1,1),
-                                                targetLocales=reshape(Locales, {0..#numLocales,1..1}));
+  const BigD = {0..N+1, 0..M+1} dmapped Block(boundingBox={0..N+1, 0..M+1});
   const D: subdomain(BigD) = {1..N, 1..M};
   const COL: subdomain(BigD) = D.exterior(0,-1);
   
@@ -62,16 +60,13 @@ proc do_compute() {
   do {
     if (it % 2 == 0) {
       // copy of left-right columns
-      local forall (i, j) in COL {
+      forall (i, j) in COL {
         M1[i, 0] = M1[i, M];
         M1[i, M+1] = M1[i, 1];
       }
 
-      // updating read-only cache
-      M1.updateFluff();
-
-      local forall (i, j) in D {
-        // computing new values
+      // computing new values
+      forall (i, j) in D {
         M2[i, j] = Cond[i, j] * M1[i, j]
                   + (1 - Cond[i, j]) * (
                         diagonalWeight * (M1[i-1, j-1] +
@@ -84,21 +79,16 @@ proc do_compute() {
                                         M1[i, j+1] +
                                         M1[i+1, j])
                   );
-        // computing difference
-        ABS[i, j] = abs(M1[i, j] - M2[i, j]);
       }
     } else {
       // copy of left-right columns
-      local forall (i, j) in COL {
+      forall (i, j) in COL {
         M2[i, 0] = M2[i, M];
         M2[i, M+1] = M2[i, 1];
       }
 
-      // updating read-only cache
-      M2.updateFluff();
-
-      local forall (i, j) in D {
-        // computing new values
+      // computing new values
+      forall (i, j) in D {
         M1[i, j] = Cond[i, j] * M2[i, j]
                   + (1 - Cond[i, j]) * (
                         diagonalWeight * (M2[i-1, j-1] +
@@ -111,14 +101,13 @@ proc do_compute() {
                                         M2[i, j+1] +
                                         M2[i+1, j])
                   );
-        // computing difference
-        ABS[i, j] = abs(M1[i, j] - M2[i, j]);
       }
     }
 
     it = it + 1;
 
     // computing maximum difference
+    forall idx in D do ABS[idx] = abs(M1[idx] - M2[idx]);
     e = max reduce ABS;
   } while(it < I && e > E);
   t.stop();

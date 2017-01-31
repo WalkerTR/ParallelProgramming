@@ -38,7 +38,7 @@ proc do_compute() {
   var r: results;
   var t: Timer;
   var it: int;
-  var e: real;
+  var e: bool;
 
   // matrix copy to ensure they match the domain D
   M1[D] = tinit;
@@ -84,8 +84,6 @@ proc do_compute() {
                                         M1[i, j+1] +
                                         M1[i+1, j])
                   );
-        // computing difference
-        ABS[i, j] = abs(M1[i, j] - M2[i, j]);
       }
     } else {
       // copy of left-right columns
@@ -111,19 +109,23 @@ proc do_compute() {
                                         M2[i, j+1] +
                                         M2[i+1, j])
                   );
-        // computing difference
-        ABS[i, j] = abs(M1[i, j] - M2[i, j]);
       }
     }
 
     it = it + 1;
 
     // computing maximum difference
-    e = max reduce ABS;
-  } while(it < I && e > E);
+    e = false;
+    for idx in D {
+      if abs(M1[idx] - M2[idx]) > E {
+        e = true;
+        break;
+      }
+    }
+  } while(it < I && isTrue(e));
   t.stop();
 
-  r.maxdiff = e;
+  r.maxdiff = max reduce abs(M1[D] - M2[D]);
   r.niter = it;
   r.time = t.elapsed();
 
@@ -143,3 +145,4 @@ proc do_compute() {
 /* End add your code here */
 
 util.main();
+

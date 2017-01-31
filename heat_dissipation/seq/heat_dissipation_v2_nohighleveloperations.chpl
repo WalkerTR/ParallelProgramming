@@ -1,5 +1,6 @@
 use util;
 use Time;
+use BlockDist;
 
 config const N = 150;
 config const M = 100;
@@ -23,37 +24,42 @@ const tcond: [1..N, 1..M] real;
 readpgm(C, N, M, {1..N, 1..M}, tcond, 0.0, 1.0);
 
 proc do_compute() {
-  const BigD = {0..N+1, 0..M+1};
+  const BigD = {0..N+1, 0..M+1} dmapped Block(boundingBox={0..N+1, 0..M+1});
   const D: subdomain(BigD) = {1..N, 1..M};
-
+  
   const directWeight: real = (sqrt(2) / (sqrt(2) + 1)) / 4;
   const diagonalWeight: real = (1 / (sqrt(2) + 1)) / 4;
 
-
-
-
-  var A, Temp, Cond: [BigD] real;
+  var A: [BigD] real;
+  var Cond, Temp: [D] real;
   var r: results;
   var t: Timer;
   var it: int;
   var e: real;
 
+  // matrix copy to ensure they match the domain D
   A[D] = tinit;
   Cond[D] = tcond;
 
-
+  // copy of constant top-bottom cells
   A[D.exterior(-1,0)] = A[D.interior(-1,0)];
   A[D.exterior(1,0)] = A[D.interior(1,0)];
 
+  // copy of the four corners
+  M1[0, 0] = M1[0, M];
+  M1[N+1, 0] = M1[N+1, M];
+  M1[0, M+1] = M1[0, 1];
+  M1[N+1, M+1] = M1[N+1, 1];
 
   t.start();
   do {
-
-    for i in 0..N+1 {
+    // copy of left-right columns
+    for i in 1..N {
       A[i, 0] = A[i, M];
       A[i, M+1] = A[i, 1];
     }
 
+    // computing new values
     for (i, j) in D {
       Temp[i, j] = Cond[i, j] * A[i, j]
                 + (1 - Cond[i, j]) * (
@@ -70,11 +76,17 @@ proc do_compute() {
     }
 
     it = it + 1;
+
+    // computing maximum difference
     e = 0;
     for idx in D {
       if abs(A[idx] - Temp[idx]) > e {
         e = abs(A[idx] - Temp[idx]);
       }
+    }
+
+    // storing new values
+    for idx in D {
       A[idx] = Temp[idx];
     }
   } while(it < I && e > E);

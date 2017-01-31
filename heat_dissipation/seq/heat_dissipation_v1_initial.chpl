@@ -39,28 +39,34 @@ proc do_compute() {
   weights[1,-1] = diagonalWeight;
   weights[1,1] = diagonalWeight;
 
-
-
-  var A, Temp, Cond: [BigD] real;
+  var A: [BigD] real;
+  var Cond, Temp: [D] real;
   var r: results;
   var t: Timer;
   var it: int;
   var e: real;
 
+  // matrix copy to ensure they match the domain D
   A[D] = tinit;
   Cond[D] = tcond;
 
-
+  // copy of constant top-bottom cells
   A[D.exterior(-1,0)] = A[D.interior(-1,0)];
   A[D.exterior(1,0)] = A[D.interior(1,0)];
 
+  // copy of the four corners
+  M1[0, 0] = M1[0, M];
+  M1[N+1, 0] = M1[N+1, M];
+  M1[0, M+1] = M1[0, 1];
+  M1[N+1, M+1] = M1[N+1, 1];
 
   t.start();
   do {
+    // copy of left-right columns
+    A[1..N, 0] = A[1..N, M];
+    A[1..N, M+1] = A[1..N, 1];
 
-    A[0..N+1, 0] = A[0..N+1, M];
-    A[0..N+1, M+1] = A[0..N+1, 1];
-
+    // computing new values
     for idx in D {
       const halo = weights * A[Halo.translate(idx)];
       Temp[idx] = 0;
@@ -71,12 +77,16 @@ proc do_compute() {
     }
 
     it = it + 1;
+
+    // computing maximum difference
     e = 0;
     for idx in D {
       if abs(A[idx] - Temp[idx]) > e {
         e = abs(A[idx] - Temp[idx]);
       }
     }
+
+    // storing new values
     A[D] = Temp[D];
   } while(it < I && e > E);
   t.stop();

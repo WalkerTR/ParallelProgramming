@@ -25,60 +25,62 @@ readpgm(C, N, M, {1..N, 1..M}, tcond, 0.0, 1.0);
 proc do_compute() {
   const BigD = {0..N+1, 0..M+1};
   const D: subdomain(BigD) = {1..N, 1..M};
-
+  const Halo = {-1..1, -1..1};
+  
   const directWeight: real = (sqrt(2) / (sqrt(2) + 1)) / 4;
   const diagonalWeight: real = (1 / (sqrt(2) + 1)) / 4;
+  var weights: [Halo] real;
+  weights[-1,0] = directWeight;
+  weights[0,-1] = directWeight;
+  weights[0,1] = directWeight;
+  weights[1,0] = directWeight;
+  weights[-1,-1] = diagonalWeight;
+  weights[-1,1] = diagonalWeight;
+  weights[1,-1] = diagonalWeight;
+  weights[1,1] = diagonalWeight;
 
-
-
-
-  var A, Temp, Cond: [BigD] real;
+  var A: [BigD] real;
+  var Cond, Temp: [D] real;
   var r: results;
   var t: Timer;
   var it: int;
   var e: real;
 
+  // matrix copy to ensure they match the domain D
   A[D] = tinit;
   Cond[D] = tcond;
 
-
+  // copy of constant top-bottom cells
   A[D.exterior(-1,0)] = A[D.interior(-1,0)];
   A[D.exterior(1,0)] = A[D.interior(1,0)];
 
+  // copy of the four corners
+  M1[0, 0] = M1[0, M];
+  M1[N+1, 0] = M1[N+1, M];
+  M1[0, M+1] = M1[0, 1];
+  M1[N+1, M+1] = M1[N+1, 1];
 
   t.start();
   do {
+    // copy of left-right columns
+    A[1..N, 0] = A[1..N, M];
+    A[1..N, M+1] = A[1..N, 1];
 
-    for i in 0..N+1 {
-      A[i, 0] = A[i, M];
-      A[i, M+1] = A[i, 1];
-    }
-
-    for (i, j) in D {
-      Temp[i, j] = Cond[i, j] * A[i, j]
-                + (1 - Cond[i, j]) * (
-                      diagonalWeight * (A[i-1, j-1] +
-                                        A[i-1, j+1] +
-                                        A[i+1, j-1] +
-                                        A[i+1, j+1])
-                      +
-                      directWeight * (A[i-1, j] +
-                                      A[i, j-1] +
-                                      A[i, j+1] +
-                                      A[i+1, j])
-                );
+    // computing new values
+    forall idx in D {
+      const halo = weights * A[Halo.translate(idx)];
+      Temp[idx] = + reduce halo;
+      Temp[idx] *= 1 - Cond[idx];
+      Temp[idx] += Cond[idx] * A[idx];
     }
 
     it = it + 1;
-    e = 0;
-    for idx in D {
-      if abs(A[idx] - Temp[idx]) > e {
-        e = abs(A[idx] - Temp[idx]);
-      }
-    }
-    for idx in D {
-      A[idx] = Temp[idx];
-    }
+
+    // computing maximum difference
+    e = max reduce abs(A[D] - Temp[D]);
+
+    // storing new values
+    A[D] = Temp[D];
   } while(it < I && e > E);
   t.stop();
 
