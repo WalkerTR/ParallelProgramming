@@ -32,7 +32,7 @@ In this report we will introduce a possible parallelization of a program that si
 \section{Algorithm} \label{sec:algorithm}
 The algorithm is pretty similar to Successive Over Relaxation, except that the conceptually the leftmost and the rightmost columns are adjacent. On the other hand, the top and the bottom rows have fixed values. Also the way to compute the new value of each cell is different, since it depend on a specific conductivity index of the cell and the weighted average of all 8 neighbours. \\
 If the matrix is distributed among the nodes using the block distribution, the communication is $\mathcal{O}((M~+~N)~/~\sqrt{P})$ while the computation is $\mathcal{O}((M~\times~N)~/~P)$. It follows that the computation/communication ratio is good only when the problem size is much higher than the number of processes. When such condition is satisfied, the parallel algorithm is able to reach a nearly perfect linear speedup. \\
-The row distribution might perform slightly better, since it does not require communication for copying the right-left columns and each process have to communicate with maximum two other processes, however Chapel does not provide the implementation.
+The row distribution might perform slightly better, since it does not require communication for copying the right-left columns and each process have to communicate with maximum two other processes.
 
 \section{Sequential program}
 Chapel's domain are a convenient high level abstraction for working with complex data structure. In order to compute each cell, we can use domain to execute the operation at higher level. The following domain has been defined:
@@ -56,7 +56,7 @@ In section \nameref{sec:introduction} we said the the parallel program has minim
 The resulting parallel program is identical to the sequential one, except that operations on data structures are done using \texttt{forall} loops and the \texttt{reduce} parallel operator.
 
 \section{Distributed program}
-Once again, in order to distribute the program, only minimal changes to program are required. In particular, we have to instruct the compiler that the data must be distributed and this is done using a particular syntax when definining the arrays. Chapel already provide the most popular partitioning scheme and the programmer can also implement an arbitrary one, though this is not needed in this case. As described in section \nameref{sec:algorithm}, the block distribution provided by Chapel perform well. Therefore the only change in the program is on the \texttt{BigD} domain declaration, which now is also \texttt{dmapped Block(...)}.
+Once again, in order to distribute the program, only minimal changes to program are required. In particular, we have to instruct the compiler that the data must be distributed and this is done using a particular syntax when definining the arrays. Chapel already provide the most popular partitioning scheme and the programmer can also implement an arbitrary one, though this is not needed in this case. As described in section \nameref{sec:algorithm}, the block distribution provided by Chapel is a good partitioning scheme. Therefore, the only change in the program is on the \texttt{BigD} domain declaration, which now is also \texttt{dmapped Block(...)}.
 
 \section{Performance measurement}
 In order to measure the performance gain, the running times of the program have been measured for the following problem sizes:
@@ -111,13 +111,21 @@ More attention must be paid at the end of the program: the result will be in one
 While inspecting the conductivity pattern we noticed that many cell have value 65535, that is, the conductivity index is null. When there is no conductivity, the value of the cell remains constant over the time domain, therefore after updating the cell the value will be the same. We can exploit the conductivity index to compute a cell only when needed, avoiding useless computation, memory access and, for the multi locale version, communication.
 
 \subsection{Avoiding delta calculation}
-The convergence criterion states that, when for each cell the difference between the old value and the new computed one is below a given threshold, the algorithm terminates. In order to that, in each iteration the maximum difference for each cell is calculated and it is compared with the threshold. Though it is correct, this is not the optimal solution since it compute a lot of unnecessary information. In fact, we don't really need to know if the maximum value is below the threshold, but what we need is to know if there is at least one difference above the threshold. Introducing this little change, we don't need to explore the entire matrix but only on part of it. During the first iterations it is likely that most cells have a difference above the threshold, hence only a minimal part of the matrix must be examined. \\
-However in all the three versions this improvement didn't lead to a performance gain (sequential one) or introduced a performance loss (parallel and distributed ones). This is a really weird behaviour.
+The convergence criterion states that, when for each cell the difference between the old value and the new computed one is below a given threshold, the algorithm terminates. In order to that, in each iteration the maximum difference for each cell is calculated and it is compared with the threshold. Though it is correct, this is not the optimal solution since it compute a lot of unnecessary information. In fact, we don't really need to know if the maximum value is below the threshold, but what we need is to know if there is at least one difference above the threshold. Introducing this little change, we don't need to explore the entire matrix but only on part of it. During the first iterations it is likely that most cells have a difference above the threshold, hence only a minimal part of the matrix must be examined.
 
 \subsection{Stencil distribution}
+In the multi locale version, we distribute the matrix among locales using the \texttt{Block} distribution. Though this approach is correct, every time a locale use an external cell it must perform a remote read. During a single iteration a locale access the same external cell about three times, therefore the locale performs three different read operations though the value is constant. \\
+Chapel provide a particular distribution, namely \texttt{Stencil} distribution, which is designed for stencil operations. It is a particular block distribution, where the adjacent cells are stored in a read-only cache. This allows to read the “remote” cells in the local memory and the cache can be updated manually using the method \texttt{updateFluff}.
 
 \subsection{Row partitioning}
+In the section \nameref{sec:algorithm} we already argued that the row partitioning might perform slightly better, since it does not require communication when copying the right-left boundaries. The implementation is really easy, since the Block (or Stencil) distribution constructor has the parameter \texttt{targetLocales} which allows to set how data must be mapped to locales. In this particular case, targetLocales should be a matrix which width is 1.
 
 \subsection{Keyword local}
+The Chapel compiler is not yet able to produce well optimized code. Sometime it fails some easy assumpions about data locality and this introduce a big communication overhead. However, the programmer can tell the compiler that some code perform only local memory access using the keywork \texttt{local}. In particular, the keyword can be used in two parts of the program:
+\begin{itemize}
+    \item When copying the right-left columns, since we are now using a row distribution.
+    \item When updating each cell, since we are using a Stencil distribution and the cache is updated manually.
+\end{itemize}
+After this change, the program had an incredible performance boost due to the less communication involved.
 
 \end{document}

@@ -32,11 +32,11 @@ proc do_compute() {
   const diagonalWeight: real = (1 / (sqrt(2) + 1)) / 4;
 
   var M1, M2: [BigD] real;
-  var Cond: [D] real;
+  var Cond, ABS: [D] real;
   var r: results;
   var t: Timer;
   var it: int;
-  var e: bool;
+  var e: real;
   var t1, t2, t3, t4: Timer;
 
   M1[D] = tinit;
@@ -83,6 +83,7 @@ proc do_compute() {
                                         M1[i, j+1] +
                                         M1[i+1, j])
                   );
+          ABS[i, j] = abs(M1[i, j] - M2[i, j]);
         }
       }
       t2.stop();
@@ -114,6 +115,7 @@ proc do_compute() {
                                         M2[i, j+1] +
                                         M2[i+1, j])
                   );
+          ABS[i, j] = abs(M1[i, j] - M2[i, j]);
         }
       }
       t2.stop();
@@ -122,17 +124,11 @@ proc do_compute() {
     it = it + 1;
 
     t3.start();
-    e = false;
-    for i in D {
-      if (abs(M1[i] - M2[i]) > E) {
-        e = true;
-        break;
-      }
-    }
+    e = max reduce ABS;
     t3.stop();
 
 
-  } while(it < I && isTrue(e));
+  } while(it < I && e > E);
   t.stop();
 
   writeln(t1.elapsed());
@@ -140,7 +136,7 @@ proc do_compute() {
   writeln(t3.elapsed());
   writeln(t4.elapsed());
 
-  r.maxdiff = max reduce abs(M1[D] - M2[D]);
+  r.maxdiff = e;
   r.niter = it;
   r.time = t.elapsed();
 
