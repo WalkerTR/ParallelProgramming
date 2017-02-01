@@ -85,7 +85,7 @@ The speedup has been measured for three problem sizes:
     \item Size 3: 7500 $\times$ 7500 - 1000 iterations
 \end{itemize}
 When comparing problem sizes, we compare only the dimensions of the matrix, since the number of iterations and the running time depends linearly. \\
-After the first performance measurement a superlinear speedup has been detected. This was not suppose to happen and after further investigation the reason has been found in the copy of the boundary cells. The parallel program first copies the right-left borders and then sends the top-bottom rows (included ghost cells). On the other hand, the sequential program copies the four corner cells separately and this introduce a noticeable overhead. Computer architectures are designed to provide the fastest memory access when reading sequentially. Accessing the memory randomly, like accessing the four corners, has a big impact on performance. For this reason, in order to respect the same structure of the parallel program and provide a fair speedup, \emph{the sequential program has been modified and the four corner cells are now copied together with the top-bottom rows}. \\
+%After the first performance measurement a superlinear speedup has been detected. This was not suppose to happen and after further investigation the reason has been found in the copy of the boundary cells. The parallel program first copies the right-left borders and then sends the top-bottom rows (included ghost cells). On the other hand, the sequential program copies the four corner cells separately and this introduce a noticeable overhead. Computer architectures are designed to provide the fastest memory access when reading sequentially. Accessing the memory randomly, like accessing the four corners, has a big impact on performance. For this reason, in order to respect the same structure of the parallel program and provide a fair speedup, \emph{the sequential program has been modified and the four corner cells are now copied together with the top-bottom rows}. \\
 \begin{figure}
 \centering
 \frame{\includegraphics[width=0.8\textwidth]{speedup_standard.png}}
@@ -138,7 +138,28 @@ In \autoref{tab:timeperphasecomparison} we showed that the receive phase is a bo
 \subsection{Matrix transposition}
 The matrix is splitted among processes using the rows partitioning scheme and the communication is $\mathcal{O}(M)$, as described in \nameref{sec:parallelalgorithm}. If the input size of the problem has (much) more columns than rows, a columns partitioning scheme would be slightly better because it requires only $\mathcal{O}(N)$ communication. The easiest way to switch from rows partitioning to columns partitioning is transposing the matrix, since it does not change the result (each cell has the same neighbours). Though, this improvement has not been implemented because the code would be less readable and this application is meant for performance testing. In fact, the problem can be avoided by providing the input dimensions in the opposite order.
 
+\section{Conclusion}
+The final program has reached a really good result: it has a perfect linear speedup and the running time is preatty steady for different execution. In the section \nameref{sec:parallelalgorithm} we said that the algorithm has perfect linear speedup and this is proved by the chart in \autoref{fig:speedupimproved}. This also shows that OpenMPI is a very efficient technologies, which introduce a minimal overhead. \\
+Concluding, C and OpenMPI represent a flexible and powerful technology for high performance computing. On the other hand, it requires a bit more effort and is more error prone.
+
 \appendix
+
+\section{Bonus work: OpenMP}
+The report describe the parallization of the Game of Life using OpenMPI. Since the report focus on the distribution of the application, the parallel program is single threaded and the scalability is achieved using a greater number of nodes. This is not a real situation, since each node has eight cores and most of the computational power is wasted. A simple way to take advantage of the multicore machines is simply to run multiple instances of the same application for each node, but this does not take into account data locality because processes with adjacent rank could be on different machines. Furthermore, parallelism by means of processes has a greater overhead than parallelism by means of threads (context switch, communication, etc). A better solution is using multithreading within the application, which can be done easily with OpenMP. The for loops can be parallelized just adding a directive and the preprocessor will produce the parallel code.
+
+\subsection{Variable scope}
+After parallelizing the application by means of OpenMP directives, an incredible slow down has been noticed. The application was running about 10x times slower than the single thread one, though the overhead caused by thread management is really small, and the produced output was wrong. The problem was caused by the definition of the variable in the global scope, which is responsible for both the slow down (cache invalidation) and wrong output (side effects between threads). The problem has been resolved declaring the variables in the inner scope, which is different for each thread.
+
+\subsection{Results}
+\begin{figure}
+\centering
+\frame{\includegraphics[width=0.8\textwidth]{speedup_openmp.png}}
+\caption{Speedup - OpenMP version}
+\label{fig:speedupopenmp}
+\end{figure}
+
+The measured speedup is available in \autoref{fig:speedupopenmp} and in \autoref{tab:openmptimes}. Compared to the regular version, the speedup highly fluctuate: some lucky executions show a superlinear speedup, while other ones show a sublinear speedup, but overall it is a perfect linear speedup. \\
+The superlinear speedup is probably caused by the greater number of cache hits. This might also explains the high variance in the speedup, since the number of cache misses/hits depends on the runtime scheduling.
 
 \section{Execution times}
 
@@ -202,6 +223,31 @@ Nodes & Size 1 & Size 2 & Size 3 \\ \hline
 16 & 40.52 (15.19) & 41.17 (15.93) & 47.88 (15.68) \\ \hline
 \end{tabular}
 \caption{Execution times - Improved version} \label{tab:improvedtimes}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|c|c|c|}
+\hline
+Nodes & Size 1 & Size 2 & Size 3 \\ \hline
+1 & 46.31 (13.29) & 67.51 (9.72) & 75.86 (9.90) \\ \hline
+2 & 25.71 (23.94) & 37.60 (17.45) & 38.25 (19.63) \\ \hline
+3 & 17.75 (34.68) & 23.71 (27.67) & 25.11 (29.91) \\ \hline
+4 & 18.19 (33.84) & 16.40 (40.01) & 20.34 (36.91) \\ \hline
+5 & 11.41 (53.93) & 13.38 (49.05) & 15.12 (49.66) \\ \hline
+6 & 10.83 (56.83) & 10.05 (65.27) & 12.61 (59.55) \\ \hline
+7 & 10.83 (56.83) & 10.63 (61.74) & 12.78 (58.75) \\ \hline
+8 & 9.82 (62.70) & 8.37 (78.34) & 13.08 (57.39) \\ \hline
+9 & 9.55 (64.43) & 7.90 (83.03) & 9.87 (76.06) \\ \hline
+10 & 8.73 (70.55) & 7.26 (90.36) & 8.82 (85.12) \\ \hline
+11 & 8.11 (75.92) & 6.69 (98.06) & 10.08 (74.49) \\ \hline
+12 & 6.10 (100.91) & 4.01 (163.52) & 7.36 (101.99) \\ \hline
+13 & 5.59 (110.21) & 4.02 (163.05) & 5.92 (126.75) \\ \hline
+14 & 6.80 (90.47) & 5.80 (113.11) & 6.58 (114.18) \\ \hline
+15 & 8.33 (73.94) & 10.18 (64.43) & 8.82 (85.12) \\ \hline
+16 & 7.46 (82.48) & 4.44 (147.82) & 5.30 (141.70) \\ \hline
+\end{tabular}
+\caption{Execution times - OpenMP version} \label{tab:openmptimes}
 \end{table}
 
 \end{document}

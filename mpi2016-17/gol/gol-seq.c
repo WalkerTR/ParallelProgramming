@@ -18,6 +18,12 @@ double rtime;
 
 // update board for step n
 void doTimeStep(){
+	/* corner boundary conditions */
+	old[0][0] = old[bwidth][bheight];
+	old[0][bheight + 1] = old[bwidth][1];
+	old[bwidth + 1][bheight + 1] = old[1][1];
+	old[bwidth + 1][0] = old[1][bheight];
+
 	/* left-right boundary conditions */
 	for (i = 1; i <= bwidth; i++){
 		old[i][0] = old[i][bheight];
@@ -25,7 +31,7 @@ void doTimeStep(){
 	}
 
 	/* top-bottom boundary conditions */
-	for (j = 0; j < nj; j++){
+	for (j = 1; j <= bheight; j++){
 		old[0][j] = old[bwidth][j];
 		old[bwidth + 1][j] = old[1][j];
 	}
@@ -85,20 +91,20 @@ int main(int argc, char *argv[]) {
   new = malloc(ni*sizeof(int*));
 
   for(i=0; i<ni; i++){
-	old[i] = malloc(nj*sizeof(int));
-	new[i] = malloc(nj*sizeof(int));
+    old[i] = malloc(nj*sizeof(int));
+    new[i] = malloc(nj*sizeof(int));
   }
 
 	/*  initialize board */
   for(i=1; i<=bwidth; i++){
-	for(j=1; j<=bheight; j++){
-	  x = rand()/((float)RAND_MAX + 1);
-	  if(x<0.5){
+    for(j=1; j<=bheight; j++){
+      x = rand()/((float)RAND_MAX + 1);
+      if(x<0.5){
 	old[i][j] = 0;
-	  } else {
+      } else {
 	old[i][j] = 1;
-	  }
-	}
+      }
+    }
   }
 
 	if(gettimeofday(&start, 0) != 0) {
@@ -123,9 +129,9 @@ int main(int argc, char *argv[]) {
   /*  Iterations are done; sum the number of live cells */
   isum = 0;
   for(i=1; i<=bwidth; i++){
-	for(j=1; j<=bheight; j++){
-	  isum = isum + old[i][j];
-	}
+    for(j=1; j<=bheight; j++){
+      isum = isum + old[i][j];
+    }
   }
 
   printf("Number of live cells = %d\n", isum);
