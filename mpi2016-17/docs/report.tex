@@ -125,13 +125,13 @@ We can modify the program in such a way that the matrix must fit in the sum of t
 
 
 \subsection{Overlapping communication and computation} \label{sec:overlappingcommcomp}
-In \autoref{tab:timeperphasecomparison} we showed that the receive phase is a bottleneck and the processes spend a noticeable time waiting for the messages. In order to reduce the latencies, we can overlap communication and computation. In fact, the vast majority of the matrix can be computed without the information collected by the receive. Therefore we can exploit the waiting time and compute the inner part of the matrix while messages are in transit. Only when the inner matrix has been computed \texttt{MPI\_Recv} is called to read incoming messages and process the boundary rows. The results are showed in \autoref{fig:speedupoptimized} and listed in \autoref{tab:optimizedtimes}. The performance gain is remarkable and the speedup is now smoother and almost perfect. Moreover, now different executions have really similar times.
+In \autoref{tab:timeperphasecomparison} we showed that the receive phase is a bottleneck and the processes spend a noticeable time waiting for the messages. In order to reduce the latencies, we can overlap communication and computation. In fact, the vast majority of the matrix can be computed without the information collected by the receive. Therefore we can exploit the waiting time and compute the inner part of the matrix while messages are in transit. Only when the inner matrix has been computed \texttt{MPI\_Recv} is called to read incoming messages and process the boundary rows. The results are showed in \autoref{fig:speedupimproved} and listed in \autoref{tab:improvedtimes}. The performance gain is remarkable and the speedup is now smoother and almost perfect. Moreover, now different executions have really similar times.
 
 \begin{figure}
 \centering
-\frame{\includegraphics[width=0.8\textwidth]{speedup_optimized.png}}
-\caption{Speedup - Optimized version}
-\label{fig:speedupoptimized}
+\frame{\includegraphics[width=0.8\textwidth]{speedup_improved.png}}
+\caption{Speedup - Improved version}
+\label{fig:speedupimproved}
 \end{figure}
 
 
@@ -201,7 +201,7 @@ Nodes & Size 1 & Size 2 & Size 3 \\ \hline
 15 & 43.22 (14.24) & 44.19 (14.84) & 50.92 (14.75) \\ \hline
 16 & 40.52 (15.19) & 41.17 (15.93) & 47.88 (15.68) \\ \hline
 \end{tabular}
-\caption{Execution times - Optimized version} \label{tab:optimizedtimes}
+\caption{Execution times - Improved version} \label{tab:improvedtimes}
 \end{table}
 
 \end{document}
