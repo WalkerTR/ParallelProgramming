@@ -63,8 +63,8 @@ proc do_compute() {
   t.start();
   do {
     // copy of left-right columns
-    A[1..N, 0] = A[1..N, M];
-    A[1..N, M+1] = A[1..N, 1];
+    A[1..N, 0..0] = A[1..N, M..M];
+    A[1..N, M+1..M+1] = A[1..N, 1..1];
 
     // computing new values
     forall idx in D {
