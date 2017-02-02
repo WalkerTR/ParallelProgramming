@@ -114,7 +114,7 @@ In the multi locale version, the matrix is distributed among locales using the \
 Chapel provide a particular distribution, namely \texttt{Stencil} distribution, which is designed for stencil operations. It is a particular block distribution where the adjacent cells are stored in a read-only cache. This allows to read the “remote” cells in the local memory and the cache can be updated manually once per iteration using the method \texttt{updateFluff}.
 
 \subsection{Row partitioning}
-In the section \nameref{sec:algorithm} we already argued that the row partitioning should perform slightly better, since it does not require communication when copying the right-left boundaries. We can change the distribution easily because the Block (and Stencil) distribution constructor has a parameter \texttt{targetLocales}, which allows to set how data must be mapped to locales. In this particular case, \texttt{targetLocales} should be \texttt{reshape(Locales, {0..\#numLocales,1..1})}.
+In the section \nameref{sec:algorithm} we already argued that the row partitioning should perform slightly better, since it does not require communication when copying the right-left boundaries. We can change the distribution easily because the Block (and Stencil) distribution constructor has a parameter \texttt{targetLocales}, which allows to set how data must be mapped to locales. In this particular case, \texttt{targetLocales} should be \texttt{reshape(Locales, {0..\#numLocales, 1..1})}.
 
 \subsection{Keyword local}
 The Chapel compiler is not yet able to produce well optimized code. Sometime it fails some easy assumpions about data locality and this introduce a big communication overhead. However, the programmer can tell the compiler that some code perform only local memory access using the keywork \texttt{local}. In particular, the keyword can be used in two parts of the program:
@@ -135,12 +135,24 @@ After this change, the program had an incredible performance boost due to the le
 
 After the implementation of the above improvements, the programs run incredibly faster. The speedup for the three problem sizes can be seen in \autoref{fig:speedupimproved}, while the running times are in \autoref{sec:executiontimes}. \\
 It is really unbelievable how much faster the programs are after implementing the improvements, however the programs are still very slow compared to other technologies. Overall, we reached a maximum speedup of 7.6 running on 16 nodes of 8 cores each (256 cores), with respect to the sequential version that uses only 1 core, and this very low performance gain is not acceptable for real application. \\
-We can conclude that the Global View approach of Chapel is a very good idea and it simplifies the development process, but there are limitations that cannot be ignored. Until the performance issue won't be solved Chapel cannot be a competitive language, but it is a flexible language that can be used for academic or testing purposes.
+During the development process, due to a particular wrong syntax, a bug on the compiler has been found. It didn't cause any trouble in the development of the application, since it was caused by a not allowed expression, but this shows that the compiler is still unstable. The bug, which can be reproduced compiling the file \texttt{heat\_dissipation\_bug.chpl}, has been reported to Cray in order to be fixed. \\
+Concluding, Chapel, with its Global View programming approach, is a very smart way of writing application and it simplifies the role of the programmer.However, there are huge limitations that cannot be overlooked, such as really bad performance and immature technology. Due to this problems, Chapel at the moment is not a competitive language, but it can be considered a useful and flexible language for academic and testing purposes.
 
 
 \appendix
 
-\section{Bonus work: local view approach}
+\section{Bonus work: local view}
+In the previous sections we described the parallelization of a stencil computation using Chapel and its Global View approach. In this section we will implement the same computing using the Local View approach offered by Chapel and the PGAS concurrency model. The local view paradigm allows a finer grade control and the programmer has to manage the concurrency. This is more difficult from the programmer side, but on the other hand the program can be much faster.
+
+\subsection{Implementation}
+The PGAS model does not allow communication between processes, but it use remote reads and writes to interact with other node's memory. For this reason, in order to reduce the communication overhead, each process detect some variables in the local address space which references are available to the other processes. More precisely, we declared an array which length is equal to the number of processes. At the beginning of the computation, each process save the reference to the local object containing the field needed for the communication. In particular, for this stencil computation, processes have to send the top-bottom local rows to the adjacent processes, hence the object contains two dirrent arrays corresponding to the top bottom rows. \\
+The PGAS model is similar to a shared memory system and race condition might happen. Proper synchronization mechanism must adopted in order to guarantee the correctness of the program. Chapel offers sync variables that can be also used like a regular mutex lock, which can be used to prevent race condition. There are also barrier that are useful to guarantee all processes have performed a remote write/read. \\
+Many of the improvements described in section \nameref{sec:improvements} can be used also in the local view version, therefore they have been implemented when possible.
+
+\subsection{Results}
+The running times have been measured in the same way of the previous gloabal view versions. Since we are now using a local view, we measured the local running time for each locale and the global running time is the maximum between them. The execution times are available in \autoref{tab:localviewtimes}. \\
+Overall, the program runs about 5 to 10 times faster then the previous distributed version, which is an amazing result. This proves again that the Chapel compiler has huge performance problems when using a Global View approach. However, using the local view with the PGAS model is not really straightforward and requires more effort compared to other paradigms such as message passing. Once again Chapel does not look a winning technology.
+
 
 \section{Execution times} \label{sec:executiontimes}
 
@@ -178,6 +190,20 @@ Nodes & Size 1 & Size 2 & Size 3 \\ \hline
 16 & 0.47 (4.28) & 2.22 (7.15) & 29.04 (7.59) \\ \hline
 \end{tabular}
 \caption{Execution times - Distributed version} \label{tab:distributedtimes}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|c|c|c|}
+\hline
+Nodes & Size 1 & Size 2 & Size 3 \\ \hline
+1 & 0.32 & 2.52 & 38.38 \\ \hline
+2 & 0.23 & 1.32 & 20.29 \\ \hline
+4 & 0.18 & 0.78 & 10.57 \\ \hline
+8 & 0.13 & 0.53 & 6.99 \\ \hline
+16 & 0.15 & 0.48 & 4.40 \\ \hline
+\end{tabular}
+\caption{Execution times - Local view version} \label{tab:localviewtimes}
 \end{table}
 
 \end{document}
