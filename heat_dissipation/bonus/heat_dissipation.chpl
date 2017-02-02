@@ -44,7 +44,6 @@ proc do_compute() {
   // references for communication
   var rows: [LocaleSpace] TopBottom;
 
-
   // spawning the execution on locales
   // the variabile with side effects (non sync)
   // must be passed by reference
@@ -222,6 +221,7 @@ proc do_compute() {
 
       lock = true;
 
+      // reducing local results with global ones
       if (local_r.tmin < r.tmin) then r.tmin = local_r.tmin;
       if (local_r.tmax > r.tmax) then r.tmax = local_r.tmax;
       if (local_r.maxdiff > r.maxdiff) then r.maxdiff = local_r.maxdiff;

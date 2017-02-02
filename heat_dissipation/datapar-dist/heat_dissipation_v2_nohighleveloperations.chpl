@@ -46,10 +46,10 @@ proc do_compute() {
   A[D.exterior(1,0)] = A[D.interior(1,0)];
 
   // copy of the four corners
-  M1[0, 0] = M1[0, M];
-  M1[N+1, 0] = M1[N+1, M];
-  M1[0, M+1] = M1[0, 1];
-  M1[N+1, M+1] = M1[N+1, 1];
+  A[0, 0] = A[0, M];
+  A[N+1, 0] = A[N+1, M];
+  A[0, M+1] = A[0, 1];
+  A[N+1, M+1] = A[N+1, 1];
 
   t.start();
   do {
